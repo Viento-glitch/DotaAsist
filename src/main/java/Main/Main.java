@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.sql.Time;
+
+import static java.lang.Thread.sleep;
 
 public class Main implements NativeKeyListener {
     public static void main(String[] args) {
@@ -19,13 +22,6 @@ public class Main implements NativeKeyListener {
 
         GlobalScreen.getInstance().addNativeKeyListener(new Main());
     }
-
-
-    //если клавиша была нажата сохранить значение,
-    //если последующая клавиша не верная сбросить значение
-    //если последующая клавиша верная сохранить второе значение
-    //если поседовательность верная выполнить расчёт из буффера обмена
-    //выполнив расчёт сохранить в буффер обмена
 
     boolean ctrl = false;
     boolean a = false;
@@ -45,6 +41,11 @@ public class Main implements NativeKeyListener {
         if (a == true) {
             if (key.equals("C")) {
                 c = true;
+                try {
+                    sleep(100);
+                } catch (InterruptedException interruptedException) {
+                    interruptedException.printStackTrace();
+                }
                 String text = getText();
                 if (isNumeric(text)) {
                     Timer.generateRoshTiming(text);
@@ -54,14 +55,6 @@ public class Main implements NativeKeyListener {
                 }
             }
         }
-//        if (ctrl == true) {
-//            if (key.equals("CapsLock")) {
-//                String text = getText();
-//                if (isNumeric(text)) {
-//                    Timer.generateRoshTiming(text);
-//                }
-//            }
-//        }
     }
 
     boolean isNumeric(String text) {
@@ -89,11 +82,6 @@ public class Main implements NativeKeyListener {
     @Override
     public void nativeKeyReleased(NativeKeyEvent e) {
         String key = NativeKeyEvent.getKeyText(e.getKeyCode());
-//        if (key.equals("Ctrl")) {
-//            ctrl = false;
-//            a = false;
-//            c = false;
-//        }
 
     }
 
