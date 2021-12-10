@@ -8,12 +8,12 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
-import java.sql.Time;
 
 import static java.lang.Thread.sleep;
 
 public class Main implements NativeKeyListener {
     public static void main(String[] args) {
+
         try {
             GlobalScreen.registerNativeHook();
         } catch (Exception e) {
@@ -46,15 +46,54 @@ public class Main implements NativeKeyListener {
                 } catch (InterruptedException interruptedException) {
                     interruptedException.printStackTrace();
                 }
-                String text = getText();
-                if (isNumeric(text)) {
-                    Timer.generateRoshTiming(text);
-                    boolean ctrl = false;
-                    boolean a = false;
-                    boolean c = false;
+
+                String text = "";
+                text = getText();
+                if (text != "") {
+                    if (text.charAt(0) == '-') {
+                        final int timingAegis = 500;
+                        int finedTime = timingAegis + Integer.parseInt(takeAegTime(text));
+                        String result = String.valueOf(takeTime(text) - finedTime);
+                        Timer.generateRoshTiming(result);
+                        boolean ctrl = false;
+                        boolean a = false;
+                        boolean c = false;
+                    }else{
+                    if (isNumeric(text)) {
+
+                        Timer.generateRoshTiming(text);
+                        boolean ctrl = false;
+                        boolean a = false;
+                        boolean c = false;
+                    }}
                 }
             }
         }
+    }
+
+    private int takeTime(String text) {
+        int i = 0;
+        while (text.charAt(i) != ' ') {
+            i++;
+        }
+
+        i++;
+
+        String time = "";
+        for (int j = i; j < text.length(); j++) {
+            time += text.charAt(j);
+        }
+        return Integer.parseInt(time);
+    }
+
+    private String takeAegTime(String text) {
+        int i = 0;
+        String aegisTime = "";
+        while (text.charAt(i) != ' ') {
+            aegisTime += text.charAt(i);
+            i++;
+        }
+        return aegisTime;
     }
 
     boolean isNumeric(String text) {
