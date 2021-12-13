@@ -8,19 +8,24 @@ import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static java.lang.Thread.sleep;
 
-public class Main implements NativeKeyListener {
+public class Base implements NativeKeyListener {
+    Base() {
+// Get the logger for "com.github.kwhat.jnativehook" and set the level to warning.
+        Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+        logger.setLevel(Level.WARNING);
+
+// Don't forget to disable the parent handlers.
+        logger.setUseParentHandlers(false);
+    }
+
     public static void main(String[] args) {
-
-        try {
-            GlobalScreen.registerNativeHook();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        GlobalScreen.getInstance().addNativeKeyListener(new Main());
+        Visual vis  =new Visual();
+        vis.setVisible(true);
     }
 
     boolean ctrl = false;
@@ -58,14 +63,14 @@ public class Main implements NativeKeyListener {
                         boolean ctrl = false;
                         boolean a = false;
                         boolean c = false;
-                    }else{
-                    if (isNumeric(text)) {
-
-                        Timer.generateRoshTiming(text);
-                        boolean ctrl = false;
-                        boolean a = false;
-                        boolean c = false;
-                    }}
+                    } else {
+                        if (isNumeric(text)) {
+                            Timer.generateRoshTiming(text);
+                            boolean ctrl = false;
+                            boolean a = false;
+                            boolean c = false;
+                        }
+                    }
                 }
             }
         }
@@ -76,7 +81,6 @@ public class Main implements NativeKeyListener {
         while (text.charAt(i) != ' ') {
             i++;
         }
-
         i++;
 
         String time = "";
