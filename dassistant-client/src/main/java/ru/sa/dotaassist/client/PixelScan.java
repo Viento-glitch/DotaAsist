@@ -1,4 +1,4 @@
-package Main;
+package ru.sa.dotaassist.client;
 
 import java.awt.*;
 
