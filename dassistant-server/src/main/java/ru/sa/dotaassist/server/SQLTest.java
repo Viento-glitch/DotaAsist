@@ -12,6 +12,7 @@ public class SQLTest {
 
 //        UUID uuid = UUID.randomUUID();
 //        sqlTest.insert(uuid);
+
         sqlTest.select();
         sqlTest.close();
     }
@@ -32,8 +33,8 @@ public class SQLTest {
 
     void insert(String uuid) {
         String query =
-            "INSERT INTO users(UUID) " +
-            "VALUES (?)";
+                "INSERT INTO users(UUID) " +
+                        "VALUES (?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, uuid);
             int insertedRows = statement.executeUpdate(query);
@@ -46,9 +47,9 @@ public class SQLTest {
 
     void select() {
         String query =
-            "SELECT id, UUID " +
-            "FROM users " +
-            "ORDER BY id";
+                "SELECT id, UUID " +
+                        "FROM users " +
+                        "ORDER BY id";
         try (Statement statement = connection.createStatement()) {
             ResultSet rs = statement.executeQuery(query);
 

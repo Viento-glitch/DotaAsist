@@ -6,7 +6,7 @@ public class Runner {
         // configure it
         // test it
 
-        View view = new View();
-        view.setVisible(true);
+//        View view = new View();
+//        view.setVisible(true);
     }
 }

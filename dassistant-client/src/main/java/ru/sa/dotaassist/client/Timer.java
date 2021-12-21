@@ -4,14 +4,13 @@ package ru.sa.dotaassist.client;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Timer {
 
-    public static void main(String[] args) {
-        generateRoshanTiming("1543");
-    }
+    public static void main(String[] args) {generateRoshanTiming("1543");}
 
     public static void generateRoshanTiming(String startNumber) {
         String seconds = makeSeconds(startNumber);
@@ -45,11 +44,13 @@ public class Timer {
         int aeg = minutes + 5;
         int minRoshan = minutes + 8;
         int maxRoshan = minutes + 11;
-        String textedTime = "" + startNumber + " :ti10_compendium:" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
-//        String textedTime = "" + startNumber + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+//        String textedTime = "" + startNumber + " :ti10_compendium:" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
 
-//     ! Рома передаст смайлики, заменить на эту строку
-//        String textedTime = ":grave:" + startNumber + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+        //бомжвариант
+        //String textedTime = "" + startNumber + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+
+//     ? с смайликами
+        String textedTime = ":grave:" + minutes + ":" + seconds + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
         return textedTime;
     }
 
