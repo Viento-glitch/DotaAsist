@@ -4,9 +4,9 @@ import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
 
 import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.SQLException;
 import java.util.Date;
 
 class View extends JFrame {
@@ -19,18 +19,108 @@ class View extends JFrame {
 
     public View() {
         super("DAssistant " + VERSION);
+        warningMessage();
         setBounds(900, 450, 330, 115);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
                 /**todo
-                 *  создать инсерт sessionDuration
                  *?  создать масштабную таблицу действий
                  *!  создать багрепорт
-                 *  создать таблицу багрепорта
-                 *?  создать предупреждение о получаемой информации пользователя
+                 *!  создать таблицу багрепорта
+                 *
+                 *  ?формат Database
+                 *  * "logs"
+                 *  1. юид.
+                 *  2. время запуска приложения.
+                 *  3. время закрытия приложения.
+                 *  !______________________________
+                 *  !Клиентская часть
+                 *  ?Багрепорт
+                 *  1 время отправки багрепорта
+                 *  2 юид
+                 *  3 текст багрепорта
+                 *
+                 *  ?VersionControl
+                 *
+                 *  ?1 сравнение версии приложения с сохранённой последней версией в логе обновлений
+                 *      * при соответствии версии приложения с сохранённой последней версией в логе обновлений
+                 *
+                 *          ? попытка запроса на сервер
+                 *              * случае удачного подключения к серверу
+                 *                   запросить цифру последнего обновления
+                 *                      ? сравнение последней версии в логе обновлений с цифрой последнего обновления полученной с сервера
+                 *                        * в случае соответствия версии пользователя версии полученной с сервера
+                 *                               продолжить стандартное выполнение программы
+                 *
+                 *                        ! в случае не соответствия версии пользователя версии полученной с сервера
+                 *                               изменить лог апдейтов пользователя
+                 *                              ? создание нового лога апдейтов
+                 *                                  ? перебор версий отсортированному по id
+                 *                                      ? при нахождении соответствия версии приложения и выбранного id
+                 *                                           запомнить id
+                 *                                           если версия последняя
+                 *                                              * перенести полученные изменения в лог апдейтов
+                 *                                                   сохранить последнюю версию обнаруженную
+                 *                                                  в лог апдейтов.
+                 *
+                 *                                          ! если версия не последняя
+                 *                                          ? перебрать все последующие версии
+                 *                                                  * добавить к результату версию обновления
+                 *                                                  * добавить текст обновления
+                 *                                                  * добавить разделитель между обновлениями
+                 *
+                 *          ! в случае не удачного подключения к серверу
+                 *
+                 *      ! при несоответствии версии приложения с сохранённой последней версией в логе обновлений
+                 *          ? проверить наличие галочки в чекбоксе "Обновлять без лишних вопросов"
+                 *              * при согласии на обновления без лишних вопросов
+                 *                     todo реаилизация обновления путём скачивания файлов с github оповестить о
+                 *                      окончании скачивания
+                 *                      перезапустить приложение
+                 *                      показать нововведения
+                 *              ! при не согласии на обновления без лишних вопросов
+                 *                   оповестить пользователя о возможности обновится
+                 *                       изменить структуру приложения добавив в окно UpdateNews кнопку обновится
+                 *                          ? при нажатии на клавишу обновится
+                 *                              *todo реаилизация обновления путём скачивания файлов с github
+                 *                                  оповестить о окончании скачивания
+                 *                                  перезапустить приложение
+                 *
+                 *      /////////////////////////////////////////////////////////////////////////////////
+                 *
+                 *  !аналог
+                 *  0 сравнить версию программы с сохранённой последней версией в базе данных клиента.
+                 *      0.1 при несоответствии продеманстрировать сообщение сопутствующее обновлению.
+                 *  1 Запрос серверу версии в виде String данных.
+                 *  2 сравнение с текущей версией программы.
+                 *  3 при несоответствии версии.
+                 *  4 сохранить последнюю версию в бд.
+                 *  5 запросить блок текста сопутствующего обновлению .
+                 *  6 сохранить в базе данных.
+                 *  7 выдать сообщение пользователю.
+                 *  8 прервать выполнение остальной части программы.
+                 *  !______________________________
+                 *  !Серверная часть
+                 *  ?Багрепорт
+                 *  1 время отправки багрепорта
+                 *  2 юид
+                 *  3 текст багрепорта
+                 *  ?VersionControl
+                 *  *   DataBase
+                 *  1 update table
+                 *      1.2 лог версий
+                 *          1.2.1
+                 *
+                 *  2 bugReport table
+                 *      1.1 id пользователя
+                 *      1.2 дата отправки
+                 *      1.3 текст сообщения
+                 *  3
+                 *  !______________________________
                  */
+
                 Date endDate = new Date();
                 long sessionDuration = endDate.getTime() - Runner.startDate.getTime();
                 System.out.println(sessionDuration);
@@ -51,6 +141,20 @@ class View extends JFrame {
         container.add(buttonBugReport);
         container.add(buttonActivate);
         container.add(buttonDeactivate);
+    }
+
+    private void warningMessage() {
+        try {
+            if (!DatabaseManager.isDatabaseExists()) {
+                JOptionPane warningMessage = new JOptionPane();
+                warningMessage.showMessageDialog(null,
+                        "                                         Внимание!\n" +
+                                "Для улучшения качества обслуживания \n" +
+                                "отслеживается продолжительность запущенной программы", "", JOptionPane.INFORMATION_MESSAGE, null);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void exitProcedure() {
@@ -82,7 +186,7 @@ class View extends JFrame {
                             "   2.2. Посмотреть на аегисе его оставшееся время\n" +
                             "       2.2.1. Зафиксировать текущее время.\n" +
 
-                            "   2.3. Записать время." +
+                            "   2.3. Записать время.\n" +
                             "       2.3.1. Записать оставшееся время Аегиса одной цифрой с знаком минус(-400 если 4:00)\n" +
                             "       2.3.2. Добавить пробел.\n" +
                             "       2.3.3. Записать Зафиксированное время в виде одной цифры (см выше п. 2.2.1)   \n" +
@@ -109,15 +213,16 @@ class View extends JFrame {
             bugReportFrame.setBounds(900, 450, 480, 400);
             bugReportFrame.setLayout(new GridLayout(3, 1, 2, 3));
             JButton sandBugReportButton = new JButton("Отправить");
-            JTextPane input = new JTextPane();
-            input.setSize(100,300);
-            input.addKeyListener(new KeyAdapter() {
-                public void keyPressed(KeyEvent e) {
-                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                        sandBugReportButton.doClick();
-                    }
-                }
-            });
+            JTextPane bugReportMessage = new JTextPane();
+//            bugReportMessage.
+            bugReportMessage.setSize(100, 300);
+//            bugReportMessage.addKeyListener(new KeyAdapter() {
+//                public void keyPressed(KeyEvent e) {
+//                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+//                        sandBugReportButton.doClick();
+//                    }
+//                }
+//            });
 //            sandBugReportButton.addActionListener();
 
             JTextPane dialog = new JTextPane();
@@ -126,12 +231,12 @@ class View extends JFrame {
             );
             dialog.setEditable(false);
             bugReportFrame.add(dialog);
-            bugReportFrame.add(input);
+            bugReportFrame.add(bugReportMessage);
             bugReportFrame.add(sandBugReportButton);
             bugReportFrame.setVisible(true);
 
             /**todo
-             * создать дочернее окно с полем для ввода
+             *  создать дочернее окно с полем для ввода
              */
         }
     }

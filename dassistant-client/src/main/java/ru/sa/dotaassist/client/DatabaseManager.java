@@ -39,6 +39,9 @@ public class DatabaseManager {
                 makeSchema();
                 UUID uuid = generateUUID();
                 initUser(uuid);
+
+//                makelogSchema();
+
             } else {
                 connection = openConnection();
             }
@@ -55,12 +58,6 @@ public class DatabaseManager {
             }
         }
     }
-
-    /**
-     * todo event_type; event_datetime; received_datetime; domain;
-     *
-     * @return
-     */
 
     private static long millisecondsPassed(Date startDate) {
         return new Date().getTime() - startDate.getTime();
@@ -91,7 +88,7 @@ public class DatabaseManager {
      * @return
      */
 
-    private static String getUuid() throws SQLException {
+    static String getUuid() throws SQLException {
         if (uuid == null) {
             String table = USER_INFO_TABLE_NAME;
             final String query = "SELECT * FROM " + table;
@@ -149,6 +146,28 @@ public class DatabaseManager {
         }
     }
 
+    public static boolean uuidExists() {
+        try {
+            connection = openConnection();
+            if (getUuid() == null) {
+                return false;
+            } else {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try {
+        connection.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     void select() {
         String query =
                 "SELECT id, UUID " +
@@ -179,7 +198,7 @@ public class DatabaseManager {
     }
 
     static void makeDatabase() throws SQLException {
-        String url = getConnectionUrl(); //todo change to getConnectionUrl(); and do it worked  getFilePath();
+        String url = getConnectionUrl();
         try (Connection connection = DriverManager.getConnection(url)) {
             if (connection != null) {
                 DatabaseMetaData meta = connection.getMetaData();
