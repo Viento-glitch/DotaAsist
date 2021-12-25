@@ -8,6 +8,8 @@ import java.util.UUID;
 public class DatabaseManager {
     private static Connection connection;
     private static final String USER_INFO_TABLE_NAME = "user_info";
+    private static final String USER_LOG_TABLE = "user_log";
+    private static String lastVersionOnDatabase = null;
     private static String uuid;
 
     static final boolean IS_DEVELOPING = true;
@@ -39,13 +41,24 @@ public class DatabaseManager {
                 makeSchema();
                 UUID uuid = generateUUID();
                 initUser(uuid);
+                makeLogSchema();
 
-//                makelogSchema();
+                //takeSchema(USER_LOG_TABLE);
 
+                initFakeLastVersion();
             } else {
                 connection = openConnection();
             }
+            lastVersionOnDatabase = getLastVersionInDataBase();
+            if (isVersionLast()) {
+                System.out.println("Version is Last!");
+            }
+
+
             getUuid();
+//            makeLogSchema();
+//            takeSchema(USER_LOG_TABLE);
+
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         } finally {
@@ -56,6 +69,60 @@ public class DatabaseManager {
                     e.printStackTrace();
                 }
             }
+        }
+    }
+
+    private static boolean isVersionLast() {
+        if (View.VERSION.equals(lastVersionOnDatabase)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static String getLastVersionInDataBase() throws SQLException {
+        String query = "SELECT * " +
+                "FROM " + USER_LOG_TABLE + " \n" +
+                "WHERE ID =(SELECT MAX(id) FROM \n" +
+                USER_LOG_TABLE +
+                ");";
+        try (Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(query);
+            if (resultSet.next()) {
+                return resultSet.getString("update_version");
+            }
+        }
+        return null;
+    }
+
+    private static void initFakeLastVersion() throws SQLException {
+        String query = "INSERT INTO " + USER_LOG_TABLE + " (update_version) \n " +
+                "VALUES('" + View.VERSION + "');";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
+            System.out.println(query);
+        }
+    }
+
+    private static void makeLogSchema() throws SQLException {
+        final String query = "CREATE TABLE " + USER_LOG_TABLE + " (\n" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
+                "update_version varchar(50), \n" +
+                "update_log varchar(500));";
+        try (Statement statement = connection.createStatement()) {
+            statement.execute(query);
+            System.out.println("logSchema created");
+        }
+    }
+
+    private static void takeSchema(String table) throws SQLException {
+//        String query = ".schema " + table;
+        DatabaseMetaData databaseMetaData = connection.getMetaData();
+        ResultSet resultSet = databaseMetaData.getSchemas();
+        while (resultSet.next()) {
+            System.out.println(resultSet.getString(1));
+            //            if (resultSet.getString(3).equals(USER_INFO_TABLE_NAME)) {
+//            }
         }
     }
 
@@ -161,7 +228,7 @@ public class DatabaseManager {
         }
 
         try {
-        connection.close();
+            connection.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
