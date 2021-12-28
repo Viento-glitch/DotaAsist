@@ -6,13 +6,24 @@ import java.util.Date;
 import java.util.UUID;
 
 public class DatabaseManager {
-    private static Connection connection;
-    private static final String USER_INFO_TABLE_NAME = "user_info";
-    private static final String USER_LOG_TABLE = "user_log";
-    private static String lastVersionOnDatabase = null;
-    private static String uuid;
+    private final String USER_INFO_TABLE_NAME = "user_info";
 
-    static final boolean IS_DEVELOPING = true;
+    private final String USER_UPDATE_LOG_TABLE_NAME = "user_update_log";
+
+    private final String USER_CHECKBOX_TABLE_NAME = "update_checkbox";
+    private final String COLUMN_UPDATE_NAME = "update_boolean";
+
+    private final String USER_LOG_TABLE_NAME = "date_log";
+    private final String USER_LOG_COLUMN_START = "start_date";
+    private final String USER_LOG_COLUMN_END = "end_date";
+
+
+    private Connection connection;
+    private String lastVersionOnDatabase = null;
+    private String uuid;
+
+//    private final boolean IS_DEVELOPING = true;
+
 
     /**
      * Создаёт базу данных
@@ -24,6 +35,8 @@ public class DatabaseManager {
      * Авторизация посредством изьятия UUID из таблицы
      * <p>
      */
+
+
     public static void main(String[] args) {
 //        if (IS_DEVELOPING) {
 //            File file = new File(getFilePath());
@@ -33,46 +46,111 @@ public class DatabaseManager {
 //                System.out.println("File undeleted");
 //            }
 //        }
-//        SQLTest sqlTest = new SQLTest();
-        try {
-            if (!DatabaseManager.isDatabaseExists()) {
-                makeDatabase();
-                connection = openConnection();
-                makeSchema();
-                UUID uuid = generateUUID();
-                initUser(uuid);
-                makeLogSchema();
-
-                //takeSchema(USER_LOG_TABLE);
-
-                initFakeLastVersion();
-            } else {
-                connection = openConnection();
-            }
-            lastVersionOnDatabase = getLastVersionInDataBase();
-            if (isVersionLast()) {
-                System.out.println("Version is Last!");
-            }
+//        DatabaseManager databaseManager = new DatabaseManager();
 
 
-            getUuid();
-//            makeLogSchema();
-//            takeSchema(USER_LOG_TABLE);
+//            if (databaseManager.isLastVersion()) {
+        //? попытка запроса на сервер
+//            } else {
+        /**todo
+         * ? проверить наличие галочки в чекбоксе "Обновлять без лишних вопросов"
+         *      при согласии на обновления без лишних вопросов
+         *          todo реаилизация обновления путём скачивания файлов с github оповестить о окончании скачивания
+         *              перезапустить приложение
+         *                  показать нововведения
+         *! при не согласии на обновления без лишних вопросов
+         *  оповестить пользователя о возможности обновится
+         *      изменить структуру приложения добавив в окно UpdateNews кнопку обновится
+         *          ? при нажатии на клавишу обновится
+         *              *todo реаилизация обновления путём скачивания файлов с github
+         *                  оповестить о окончании скачивания
+         *                  перезапустить приложение
+         */
+//            }
+//            databaseManager.getUuid();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (databaseManager.connection != null) {
+//                try {
+//                    databaseManager.connection.close();
+//                } catch (SQLException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+    }
 
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
+    public void firstLoad() throws SQLException, ClassNotFoundException {
+        this.makeDatabase();
+        this.openConnection();
+        this.makeSchema();
+
+        UUID uuid = generateUUID();
+        this.initUser(uuid);
+
+        this.makeUpdateSchema();
+        this.initFakeLastVersion();
+
+        this.makeAutoUpdateSchema();
+        this.initAutoUpdateBoolean();
+        this.setAutoUpdateBoolean(true);
+
+        this.makeLogSchema();
+
+        this.connection.close();
+    }
+
+
+    //final String query = "INSERT INTO " + USER_LOG_TABLE_NAME + " (update_version) \n " +
+//                "VALUES('" + View.VERSION + "');";
+    private void initAutoUpdateBoolean() throws SQLException {
+        final String query = "INSERT INTO " + USER_CHECKBOX_TABLE_NAME + "(" + COLUMN_UPDATE_NAME + ") \n " +
+                "VALUES('0');";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
+        }
+        System.out.println("Insert executed.");
+    }
+
+    private void makeAutoUpdateSchema() throws SQLException {
+        final String query = "CREATE TABLE " + USER_CHECKBOX_TABLE_NAME + " (\n" +
+                COLUMN_UPDATE_NAME + " INTEGER(1));";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
         }
     }
 
-    private static boolean isVersionLast() {
+    public void setAutoUpdateBoolean(boolean b) {
+        int flag = (b) ? 1 : 0;
+
+        final String query = "UPDATE " + USER_CHECKBOX_TABLE_NAME + "\n " +
+                "SET " + COLUMN_UPDATE_NAME + " = '" + flag + "';";
+
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean getUpdateBooleanFromDB() {
+        final String query = "SELECT * FROM " + this.USER_CHECKBOX_TABLE_NAME;
+        try (Statement statement = connection.createStatement()) {
+            ResultSet resultSet = statement.executeQuery(query);
+            if (resultSet.next()) {
+                System.out.println(resultSet.getBoolean(COLUMN_UPDATE_NAME));
+                return resultSet.getBoolean(COLUMN_UPDATE_NAME);
+            } else {
+                throw new Exception(COLUMN_UPDATE_NAME + " not found.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isLastVersion() {
         if (View.VERSION.equals(lastVersionOnDatabase)) {
             return true;
         } else {
@@ -80,23 +158,24 @@ public class DatabaseManager {
         }
     }
 
-    private static String getLastVersionInDataBase() throws SQLException {
-        String query = "SELECT * " +
-                "FROM " + USER_LOG_TABLE + " \n" +
+    public String getLastVersionInDataBase() throws SQLException {
+        final String query = "SELECT * " +
+                "FROM " + USER_UPDATE_LOG_TABLE_NAME + " \n" +
                 "WHERE ID =(SELECT MAX(id) FROM \n" +
-                USER_LOG_TABLE +
+                USER_UPDATE_LOG_TABLE_NAME +
                 ");";
         try (Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(query);
             if (resultSet.next()) {
+                this.lastVersionOnDatabase = resultSet.getString("update_version");
                 return resultSet.getString("update_version");
             }
         }
         return null;
     }
 
-    private static void initFakeLastVersion() throws SQLException {
-        String query = "INSERT INTO " + USER_LOG_TABLE + " (update_version) \n " +
+    private void initFakeLastVersion() throws SQLException {
+        final String query = "INSERT INTO " + USER_UPDATE_LOG_TABLE_NAME + " (update_version) \n " +
                 "VALUES('" + View.VERSION + "');";
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(query);
@@ -104,19 +183,19 @@ public class DatabaseManager {
         }
     }
 
-    private static void makeLogSchema() throws SQLException {
-        final String query = "CREATE TABLE " + USER_LOG_TABLE + " (\n" +
+    private void makeUpdateSchema() throws SQLException {
+        final String query = "CREATE TABLE " + USER_UPDATE_LOG_TABLE_NAME + " (\n" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
-                "update_version varchar(50), \n" +
-                "update_log varchar(500));";
+                "update_version VARCHAR(50), \n" +
+                "update_log VARCHAR(500));";
         try (Statement statement = connection.createStatement()) {
             statement.execute(query);
             System.out.println("logSchema created");
         }
     }
 
-    private static void takeSchema(String table) throws SQLException {
-//        String query = ".schema " + table;
+    private void takeSchema(String table) throws SQLException {
+//        final String query = ".schema " + table;
         DatabaseMetaData databaseMetaData = connection.getMetaData();
         ResultSet resultSet = databaseMetaData.getSchemas();
         while (resultSet.next()) {
@@ -126,11 +205,11 @@ public class DatabaseManager {
         }
     }
 
-    private static long millisecondsPassed(Date startDate) {
+    private long millisecondsPassed(Date startDate) {
         return new Date().getTime() - startDate.getTime();
     }
 
-    private static boolean userIDTableExists() throws SQLException {
+    private boolean userIDTableExists() throws SQLException {
         DatabaseMetaData databaseMetaData = connection.getMetaData();
         ResultSet resultSet = databaseMetaData.getTables(null, null, "%", null);
         while (resultSet.next()) {
@@ -155,52 +234,50 @@ public class DatabaseManager {
      * @return
      */
 
-    static String getUuid() throws SQLException {
+    private String getUuid() throws SQLException {
         if (uuid == null) {
             String table = USER_INFO_TABLE_NAME;
             final String query = "SELECT * FROM " + table;
             try (Statement statement = connection.createStatement()) {
                 ResultSet result = statement.executeQuery(query);
                 if (result.next()) {
-                    uuid = result.getString("uuid");
+                    this.uuid = result.getString("uuid");
                     System.out.println("UUID tacked from table : " + table);
                     System.out.println("UUID is :" + uuid);
                     return uuid;
                 }
             }
-        } else return uuid;
+        } else return this.uuid;
         return null;
     }
 
-    private static UUID generateUUID() {
+    private UUID generateUUID() {
         System.out.println("UUID generated.");
         return UUID.randomUUID();
     }
 
-    private static String getConnectionUrl() {
+    private String getConnectionUrl() {
         return "jdbc:sqlite:\\" + getFilePath();
     }
 
-    private static String getFilePath() {
+    private String getFilePath() {
         return "C:\\SQLite\\logs.db";
     }
 
-    static Connection openConnection() throws ClassNotFoundException, SQLException {
+    public void openConnection() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
         Connection connection = DriverManager.getConnection("jdbc:sqlite:" + getFilePath());
         //todo make worked with getConnectionUrl();
         if (connection != null) {
             System.out.println("Connected");
-            return connection;
-        } else {
-            return null;
+            this.connection = connection;
         }
     }
 
 
     //todo change to data loge saver;
-    static void insert(String uuid) {
-        String query =
+    void insert(String uuid) {
+        final String query =
                 "INSERT INTO users(UUID) " +
                         "VALUES (?)";
         try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -213,9 +290,9 @@ public class DatabaseManager {
         }
     }
 
-    public static boolean uuidExists() {
+    private boolean uuidExists() {
         try {
-            connection = openConnection();
+            openConnection();
             if (getUuid() == null) {
                 return false;
             } else {
@@ -235,8 +312,17 @@ public class DatabaseManager {
         return false;
     }
 
-    void select() {
-        String query =
+    public void closeConnection() {
+        try {
+            connection.close();
+            System.out.println("Disconnected");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void select() {
+        final String query =
                 "SELECT id, UUID " +
                         "FROM users " +
                         "ORDER BY id";
@@ -254,7 +340,7 @@ public class DatabaseManager {
         }
     }
 
-    public static boolean isDatabaseExists() throws SQLException {
+    public boolean isDatabaseExists() throws SQLException {
         String filePath = getFilePath();
         File file = new File(filePath);
         if (file.exists()) {
@@ -264,7 +350,7 @@ public class DatabaseManager {
         }
     }
 
-    static void makeDatabase() throws SQLException {
+    private void makeDatabase() throws SQLException {
         String url = getConnectionUrl();
         try (Connection connection = DriverManager.getConnection(url)) {
             if (connection != null) {
@@ -275,24 +361,47 @@ public class DatabaseManager {
         }
     }
 
-    static void makeSchema() throws SQLException {
-        String query = "CREATE TABLE " + USER_INFO_TABLE_NAME + " (\n" +
-                "uuid varchar(100));";
+    private void makeSchema() throws SQLException {
+        final String query = "CREATE TABLE " + USER_INFO_TABLE_NAME + " (\n" +
+                "uuid VARCHAR(100));";
         try (Statement statement = connection.createStatement()) {
             statement.execute(query);
             System.out.println("Table : " + USER_INFO_TABLE_NAME + " is created.");
         }
     }
 
-    private static void initUser(UUID uuid) throws SQLException {
-        DatabaseManager.uuid = String.valueOf(uuid);
-        String query = "INSERT INTO " + USER_INFO_TABLE_NAME + "(uuid) " +
+    private void initUser(UUID uuid) throws SQLException {
+        this.uuid = String.valueOf(uuid);
+        final String query = "INSERT INTO " + USER_INFO_TABLE_NAME + "(uuid) " +
                 "VALUES('" + uuid + "');";
         System.out.println(query);
         try (Statement statement = connection.createStatement()) {
             statement.execute(query);
             System.out.println("Initialization user is correct.");
             System.out.println("UUID of user : " + uuid);
+        }
+    }
+
+    private void makeLogSchema() {
+        final String query = "CREATE TABLE " + USER_LOG_TABLE_NAME + " (\n" +
+                USER_LOG_COLUMN_START + " VARCHAR(50) NOT NULL, \n" +
+                USER_LOG_COLUMN_END + " VARCHAR(50) NOT NULL); ";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void insertDate(Date startDate, Date endDate) {
+        String query = "INSERT INTO " + USER_LOG_TABLE_NAME + " \n" +
+                "('" + USER_LOG_COLUMN_START + "' , '" + USER_LOG_COLUMN_END + "') \n" +
+                "VALUES('" + startDate.toString() + "','" + endDate.toString() + "')";
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

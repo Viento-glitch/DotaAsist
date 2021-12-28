@@ -11,15 +11,27 @@ import java.util.Date;
 
 class View extends JFrame {
     static final String VERSION = "1.0-SNAPSHOT";
-
+    boolean autoUpdateBoolean;
     JButton buttonInstruction = new JButton("Инструкция");
     JButton buttonActivate = new JButton("Включить");
     JButton buttonDeactivate = new JButton("Выключить");
     JButton buttonBugReport = new JButton("Баг репорт");
+    JCheckBox autoUpdateCheckBox = new JCheckBox("Авто обновление", null, autoUpdateBoolean);
+
+    public void setCheckBoxStartValue(boolean value) {
+        this.autoUpdateCheckBox.setSelected(value);
+    }
+
+
+    public void setAutoUpdateBoolean(boolean autoUpdateBoolean) {
+        this.autoUpdateBoolean = autoUpdateBoolean;
+    }
 
     public View() {
         super("DAssistant " + VERSION);
-        warningMessage();
+        Date startDate = new Date();
+
+
         setBounds(900, 450, 330, 115);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -121,44 +133,74 @@ class View extends JFrame {
                  */
 
                 Date endDate = new Date();
-                long sessionDuration = endDate.getTime() - Runner.startDate.getTime();
-                System.out.println(sessionDuration);
+                long sessionDuration = endDate.getTime() - startDate.getTime();
+                System.out.println("Session duration: " + sessionDuration);
+
+                Controller controller = new Controller();
+                controller.saveDuration(startDate,endDate);
                 exitProcedure();
             }
         });
 
 
         Container container = this.getContentPane();
-        container.setLayout(new GridLayout(2, 1, 1, 2));
+        container.setLayout(new GridLayout(3, 1, 1, 2));
         buttonActivate.addActionListener(new ButtonEventListenerActivate());
 
         buttonDeactivate.addActionListener(new ButtonEventListenerDeactivate());
         buttonInstruction.addActionListener(new ButtonEventListenerInstruction());
         buttonBugReport.addActionListener(new ButtonEventListenerBugReport());
+        autoUpdateCheckBox.addActionListener(new CheckboxAction());
 
         container.add(buttonInstruction);
         container.add(buttonBugReport);
         container.add(buttonActivate);
         container.add(buttonDeactivate);
+        container.add(autoUpdateCheckBox);
     }
 
-    private void warningMessage() {
-        try {
-            if (!DatabaseManager.isDatabaseExists()) {
-                JOptionPane warningMessage = new JOptionPane();
-                warningMessage.showMessageDialog(null,
-                        "                                         Внимание!\n" +
-                                "Для улучшения качества обслуживания \n" +
-                                "отслеживается продолжительность запущенной программы", "", JOptionPane.INFORMATION_MESSAGE, null);
+    public void warningMessage() {
+        JOptionPane warningMessage = new JOptionPane();
+        warningMessage.showMessageDialog(null,
+                "                                         Внимание!\n" +
+                        "Для улучшения качества обслуживания \n" +
+                        "отслеживается продолжительность запущенной программы", "", JOptionPane.INFORMATION_MESSAGE, null);
+    }
+
+
+    class CheckboxAction extends AbstractAction {
+        public CheckboxAction() {
+            super();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            JCheckBox cbLog = (JCheckBox) actionEvent.getSource();
+            try {
+                DatabaseManager databaseManager = new DatabaseManager();
+                databaseManager.openConnection();
+                if (cbLog.isSelected()) {
+                    databaseManager.setAutoUpdateBoolean(true);
+                    System.out.println(databaseManager.getUpdateBooleanFromDB());
+                    System.out.println("AutoUpdating is enabled");
+                } else {
+                    databaseManager.setAutoUpdateBoolean(false);
+                    System.out.println("AutoUpdating is disabled");
+                    databaseManager.closeConnection();
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (SQLException e) {
+                e.printStackTrace();
+
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     private void exitProcedure() {
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
     }
+
 
     class ButtonEventListenerInstruction implements ActionListener {
         @Override

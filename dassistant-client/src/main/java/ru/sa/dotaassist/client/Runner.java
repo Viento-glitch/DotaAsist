@@ -62,17 +62,17 @@ public class Runner {
      *              ? попытка запроса последней версии с сервера
      *
      */
-    public static Runner run;
 
-    static Date startDate;
+
     public static void main(String[] args) {
         /*
-         *?баг репорт добавлять в отдельную колонку базы данных.
+         *  ?баг репорт добавлять в отдельную колонку базы данных.
          */
 
-        startDate = new Date();
 
         View view = new View();
+        DatabaseManager databaseManager = new DatabaseManager();
+        Controller controller = new Controller(view,databaseManager);
         view.setVisible(true);
 
     }
