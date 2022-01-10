@@ -126,6 +126,11 @@ public class Assistant implements NativeKeyListener {
     @Override
     public void nativeKeyReleased(NativeKeyEvent e) {
 //        String key = NativeKeyEvent.getKeyText(e.getKeyCode());
+//        if(key.equals("C")){
+//            isCtrlPressed = false;
+//            isAllSelected = false;
+//            isAllCopied = false;
+//        }
     }
 
     @Override

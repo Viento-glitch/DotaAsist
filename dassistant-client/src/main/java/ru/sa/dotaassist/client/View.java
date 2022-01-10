@@ -133,11 +133,17 @@ class View extends JFrame {
                  */
 
                 Date endDate = new Date();
-                long sessionDuration = endDate.getTime() - startDate.getTime();
-                System.out.println("Session duration: " + sessionDuration);
+                SessionDuration sessionDuration = new SessionDuration();
+                long duration = endDate.getTime() - startDate.getTime();
+                sessionDuration.setDuration(duration);
+                System.out.println("Session duration: " +
+                        "\n hours " + sessionDuration.getHours() +
+                        "\n minutes " + sessionDuration.getMinutes() +
+                        "\n seconds " + sessionDuration.getSeconds() +
+                        "\n milliseconds " + sessionDuration.getMilliseconds());
 
                 Controller controller = new Controller();
-                controller.saveDuration(startDate,endDate);
+                controller.saveDuration(startDate, endDate);
                 exitProcedure();
             }
         });
@@ -250,35 +256,59 @@ class View extends JFrame {
 
         @Override
         public void actionPerformed(ActionEvent e) {
+            JPanel panel = new JPanel();
             JFrame bugReportFrame = new JFrame();
-            bugReportFrame.setBounds(900, 450, 480, 400);
-            bugReportFrame.setLayout(new GridLayout(3, 1, 2, 3));
-            JButton sandBugReportButton = new JButton("Отправить");
-            JTextPane bugReportMessage = new JTextPane();
-//            bugReportMessage.
-            bugReportMessage.setSize(100, 300);
-//            bugReportMessage.addKeyListener(new KeyAdapter() {
-//                public void keyPressed(KeyEvent e) {
-//                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-//                        sandBugReportButton.doClick();
-//                    }
-//                }
-//            });
-//            sandBugReportButton.addActionListener();
-
-            JTextPane dialog = new JTextPane();
-            dialog.setText("Данное поле было создано с целью  повышения качества приложения \n" +
-                    "Для этого вы можете в поле ниже написать как получили ту или инную ошибку \n"
-            );
-            dialog.setEditable(false);
-            bugReportFrame.add(dialog);
-            bugReportFrame.add(bugReportMessage);
-            bugReportFrame.add(sandBugReportButton);
+            bugReportFrame.setSize(350, 500);
+            bugReportFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             bugReportFrame.setVisible(true);
+            bugReportFrame.add(panel);
+
+            panel.setLayout(null);
+
+            JTextPane bugReportMessage = new JTextPane();
+
+            bugReportMessage.setBounds(0,0,bugReportFrame.getWidth(),bugReportFrame.getHeight());
+//            bugReportMessage.setSize(MAXIMIZED_HORIZ,MAXIMIZED_VERT);
+            panel.add(bugReportMessage);
+            JButton sandBugReportButton = new JButton("Отправить");
+
+
+//
+//            bugReportFrame.setBounds(900, 450, 480, 400);
+//            bugReportFrame.setLayout(new GridLayout(3, 1, 2, 3));
+//
+//
+//            JTextPane dialog = new JTextPane();
+//            dialog.setText("Данное поле было создано с целью  повышения качества приложения \n" +
+//                    "Для этого вы можете в поле ниже написать как получили ту или инную ошибку \n"
+//            );
+//            dialog.setEditable(false);
+//            sandBugReportButton.addActionListener(new SandBugReportActionListener());
+//            sandBugReportButton.add(bugReportMessage);
+
+
+//            bugReportFrame.add(dialog);
+//            bugReportFrame.add(bugReportMessage);
+//            bugReportFrame.add(sandBugReportButton);
+//            bugReportFrame.setVisible(true);
 
             /**todo
              *  создать дочернее окно с полем для ввода
              */
+        }
+    }
+
+    class SandBugReportActionListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JOptionPane.showMessageDialog(null,
+                    "Сообщение было сохранено и по возможности будет отправлено",
+                    "Благодарю за обращение", JOptionPane.PLAIN_MESSAGE, null);
+
+
+            //todo реализовать сохранение сообщения
+
+
         }
     }
 
