@@ -23,10 +23,6 @@ class View extends JFrame {
     }
 
 
-    public void setAutoUpdateBoolean(boolean autoUpdateBoolean) {
-        this.autoUpdateBoolean = autoUpdateBoolean;
-    }
-
     public View() {
         super("DAssistant " + VERSION);
         Date startDate = new Date();
@@ -133,17 +129,10 @@ class View extends JFrame {
                  */
 
                 Date endDate = new Date();
-                SessionDuration sessionDuration = new SessionDuration();
-                long duration = endDate.getTime() - startDate.getTime();
-                sessionDuration.setDuration(duration);
-                System.out.println("Session duration: " +
-                        "\n hours " + sessionDuration.getHours() +
-                        "\n minutes " + sessionDuration.getMinutes() +
-                        "\n seconds " + sessionDuration.getSeconds() +
-                        "\n milliseconds " + sessionDuration.getMilliseconds());
-
                 Controller controller = new Controller();
                 controller.saveDuration(startDate, endDate);
+
+
                 exitProcedure();
             }
         });
@@ -170,7 +159,7 @@ class View extends JFrame {
         warningMessage.showMessageDialog(null,
                 "                                         Внимание!\n" +
                         "Для улучшения качества обслуживания \n" +
-                        "отслеживается продолжительность запущенной программы", "", JOptionPane.INFORMATION_MESSAGE, null);
+                        "отслеживается продолжительность запущенной программы", "", JOptionPane.WARNING_MESSAGE, null);
     }
 
 
@@ -267,7 +256,7 @@ class View extends JFrame {
 
             JTextPane bugReportMessage = new JTextPane();
 
-            bugReportMessage.setBounds(0,0,bugReportFrame.getWidth(),bugReportFrame.getHeight());
+            bugReportMessage.setBounds(0, 0, bugReportFrame.getWidth(), bugReportFrame.getHeight());
 //            bugReportMessage.setSize(MAXIMIZED_HORIZ,MAXIMIZED_VERT);
             panel.add(bugReportMessage);
             JButton sandBugReportButton = new JButton("Отправить");

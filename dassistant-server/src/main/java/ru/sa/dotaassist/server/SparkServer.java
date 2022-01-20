@@ -14,6 +14,8 @@ public class SparkServer {
             // uuid; event_type; event_datetime; received_datetime; domain;
         });
 
+        Spark.get("/lastversion", (request, response) -> "1.0-SNAPSHOT");
+
         System.out.println("Open : " + config.getHost() + ":" + config.getPort());
         System.out.println("Server started successfully.");
     }
