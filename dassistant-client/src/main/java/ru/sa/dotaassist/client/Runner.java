@@ -1,10 +1,12 @@
 package ru.sa.dotaassist.client;
 
+import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 public class Runner {
     /**
@@ -75,7 +77,7 @@ public class Runner {
 
         String versionOnServer = run(URL);
 
-                View view = new View();
+        View view = new View();
         DatabaseManager databaseManager = new DatabaseManager();
         Controller controller = new Controller(view, databaseManager, versionOnServer);
         controller.logeListIsDelivered();
@@ -104,23 +106,44 @@ public class Runner {
 //    }
 
     static String run(String url) throws IOException {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .readTimeout(10, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(false)
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .connectionPool(new ConnectionPool(10, 5, TimeUnit.SECONDS))
+                .build();
+
+
+
+        if(client.retryOnConnectionFailure()){
+            System.out.println("запущено без сервера");
+        }
 
         Request request = new Request.Builder()
                 .url(url)
                 .build();
 
+//            int httpResponse1 = ;
+//        System.out.println(httpResponse1);
+//        if (client.retryOnConnectionFailure()) {
+//            System.out.println("retryOnConnectionFailure");
+//        }
+//        Response httpResponse = client.newCall(request).execute()
 
-        try (Response httpResponse = client.newCall(request).execute();) {
+
+        try (Response httpResponse = client.newCall(request).execute()) {
+
+
             int code = httpResponse.code();
             System.out.println("code: " + code);
             if (code == 200) {
-                Controller controller = new Controller();
+//                Controller controller = new Controller();
 //                controller.checkLogeList();
                 return httpResponse.body().string();
             } else {
                 return null;
             }
         }
+
     }
 }

@@ -1,14 +1,14 @@
 package ru.sa.dotaassist.client;
 
-import ru.sa.dotaassist.client.retrofit.User;
+//import ru.sa.dotaassist.client.retrofit.User;
 
 public class UserApiResponse
 {
-    private User data;
+//    private User data;
 
     //Setters and getters
 
-    public String toString() {
-        return "UserApiResponse [data=" + data + "]";
-    }
+//    public String toString() {
+//        return "UserApiResponse [data=" + data + "]";
+//    }
 }

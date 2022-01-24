@@ -13,7 +13,7 @@ public class Controller {
     public static void main(String[] args) {
         Controller controller = new Controller();
         try {
-            controller.makeJsonLoge();
+            controller.getJsonLoge();
 
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -148,7 +148,7 @@ public class Controller {
         }
     }
 
-    public String makeJsonLoge() throws SQLException, ClassNotFoundException {
+    public String getJsonLoge() throws SQLException, ClassNotFoundException {
         DatabaseManager databaseManager = new DatabaseManager();
         try {
             databaseManager.openConnection();

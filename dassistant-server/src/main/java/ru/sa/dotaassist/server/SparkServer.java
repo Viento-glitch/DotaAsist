@@ -15,7 +15,7 @@ public class SparkServer {
         });
 
         Spark.get("/lastversion", (request, response) -> "1.0-SNAPSHOT");
-
+        Spark.post("/sendLoge", (request, response) -> "");
         System.out.println("Open : " + config.getHost() + ":" + config.getPort());
         System.out.println("Server started successfully.");
     }
