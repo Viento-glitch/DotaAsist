@@ -31,6 +31,7 @@
     <modules>
         <module>dassistant-client</module>
         <module>dassistant-server</module>
+        <module>dassistant-domain</module>
     </modules>
 
     <build>

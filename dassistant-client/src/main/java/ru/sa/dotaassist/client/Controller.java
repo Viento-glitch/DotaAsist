@@ -1,19 +1,22 @@
 package ru.sa.dotaassist.client;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import okhttp3.*;
+import ru.sa.dotaassist.domain.ContainerJson;
+import ru.sa.dotaassist.domain.Session;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 public class Controller {
 
     public static void main(String[] args) {
         Controller controller = new Controller();
         try {
-            controller.getJsonLoge();
+            System.out.println(controller.getJsonLoge());
 
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -21,7 +24,7 @@ public class Controller {
     }
 
 
-    Controller(View view, DatabaseManager databaseManager, String lastVersion) {
+    Controller(View view, DatabaseManager databaseManager) {
         if (isFirstLoad(databaseManager)) {
             databaseManager = new DatabaseManager();
             try {
@@ -35,22 +38,24 @@ public class Controller {
 
         try {
             databaseManager.openConnection();
-            String currentVersion = databaseManager.getLastVersionInDataBase();
-            if (currentVersion.equals(lastVersion)) {
-                System.out.println("latest version");
-            } else {
-                System.out.println("not the latest version");
-
-                //todo реализовать
-                if (isAutoUpdateTrue()) {
-
-                } else {
-
-                }
-            }
 
 
+            //            String currentVersion = databaseManager.getLastVersionInDataBase();
+
+//            if (currentVersion.equals(lastVersion)) {
+//                System.out.println("latest version");
+//            } else {
+//                System.out.println("not the latest version");
+//
+//                todo реализовать
+//                if (isAutoUpdateTrue()) {
+//
+//                } else {
+//
+//                }
+//            }
 //            System.out.println(databaseManager.isLastVersion());
+
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -125,8 +130,7 @@ public class Controller {
         try {
             databaseManager.openConnection();
 
-            int count = 0;
-            count = databaseManager.getMaxIDOfDateLoge();
+            int count = databaseManager.getMaxIDOfDateLoge();
 
             List<Integer> undeliveredIDList = new ArrayList<>();
             for (int id = 1; id <= count; id++) {
@@ -148,7 +152,7 @@ public class Controller {
         }
     }
 
-    public String getJsonLoge() throws SQLException, ClassNotFoundException {
+    public ContainerJson getJsonLoge() throws SQLException, ClassNotFoundException {
         DatabaseManager databaseManager = new DatabaseManager();
         try {
             databaseManager.openConnection();
@@ -166,12 +170,68 @@ public class Controller {
                 containerJson = new ContainerJson(uuid, sessionList);
             }
 
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            return gson.toJson(containerJson);
-
+            return containerJson;
         } finally {
             databaseManager.closeConnection();
         }
     }
+
+    public boolean serverIsOnline(String url) {
+        OkHttpClient client = new OkHttpClient.Builder()
+                .retryOnConnectionFailure(false)
+                .connectTimeout(5, TimeUnit.SECONDS)
+                .build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+
+        try {
+            Response response = client.newCall(request).execute();
+            return response.code() == 200; //todo найти нормальную константу
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+//    public boolean sendJson(String jsonLoge) {
+//        MediaType JSON = MediaType.parse(jsonLoge);
+//
+//
+//
+//
+//
+//        //        Runner runner = new Runner();
+////        OkHttpClient client = new OkHttpClient.Builder()
+////                .readTimeout(10,TimeUnit.SECONDS)
+////                .retryOnConnectionFailure(true)
+////                .connectTimeout(5,TimeUnit.SECONDS)
+////                .connectionPool(new ConnectionPool(10,5,TimeUnit.SECONDS))
+////                .build();
+////
+////        Request request = new Request.Builder()
+////                .url(runner.URL)
+////                .build();
+////
+////        try () {
+////
+////        }
+////        return false;
+//    }
+
+
+    String post(String url, String json) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+        final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
+
+        RequestBody body = RequestBody.create(json, mediaType); // new
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        Response response = client.newCall(request).execute();
+        return response.body().string();
+    }
+
 }
 

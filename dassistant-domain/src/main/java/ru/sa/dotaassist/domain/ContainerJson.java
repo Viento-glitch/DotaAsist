@@ -1,4 +1,4 @@
-package ru.sa.dotaassist.client;
+package ru.sa.dotaassist.domain;
 
 import java.util.List;
 

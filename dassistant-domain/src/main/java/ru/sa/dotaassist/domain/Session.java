@@ -1,4 +1,4 @@
-package ru.sa.dotaassist.client;
+package ru.sa.dotaassist.domain;
 
 public class Session {
     private String startDate;
@@ -23,6 +23,14 @@ public class Session {
 
     public void setEndDate(String endDate) {
         this.endDate = endDate;
+    }
+
+    @Override
+    public String toString() {
+        return "Session{" +
+                "startDate='" + startDate + '\'' +
+                ", endDate='" + endDate + '\'' +
+                '}';
     }
 }
 

@@ -1,11 +1,15 @@
 package ru.sa.dotaassist.client;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import ru.sa.dotaassist.domain.ContainerJson;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.concurrent.TimeUnit;
 
 public class Runner {
@@ -68,23 +72,46 @@ public class Runner {
      * ? попытка запроса последней версии с сервера
      */
 
-    public static final String URL = "http://localhost:3301/lastversion";
-
+    public static final String LASTVERSION = "/lastversion";
+    public static final String URL = "http://localhost:3301";
 
     public static void main(String[] args) throws IOException {
         /* ?баг репорт добавлять в отдельную колонку базы данных. */
 //        takeCodeConnection();
 
-        String versionOnServer = run(URL);
-
         View view = new View();
         DatabaseManager databaseManager = new DatabaseManager();
-        Controller controller = new Controller(view, databaseManager, versionOnServer);
-        controller.logeListIsDelivered();
+//        String versionOnServer = run(URL);
+        Controller controller = new Controller(view, databaseManager);
+
+        if (!controller.logeListIsDelivered()) {
+            if (controller.serverIsOnline(URL + LASTVERSION)) {
+                System.out.println("Сервер онлайн");
+                try {
+                    // headers
+                    // -- Content-Type..
+                    // body
+                    // -- file
+                    // -- text
+
+                    ContainerJson containerJson = controller.getJsonLoge();
+                    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+                    String json = gson.toJson(containerJson);
+
+                    String result = controller.post(URL + "/sendLoge", json);
+                    System.out.println(result);
+
+                } catch (SQLException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("Сервер оффлайн");
+            }
+        }
         view.setVisible(true);
 
         // https://square.github.io/okhttp/
-        System.out.println(versionOnServer);
+//        System.out.println(versionOnServer);
     }
 
 //    static boolean takeCodeConnection() {
@@ -105,6 +132,7 @@ public class Runner {
 //        return false;
 //    }
 
+
     static String run(String url) throws IOException {
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(10, TimeUnit.SECONDS)
@@ -113,9 +141,7 @@ public class Runner {
                 .connectionPool(new ConnectionPool(10, 5, TimeUnit.SECONDS))
                 .build();
 
-
-
-        if(client.retryOnConnectionFailure()){
+        if (client.retryOnConnectionFailure()) {
             System.out.println("запущено без сервера");
         }
 
@@ -123,27 +149,30 @@ public class Runner {
                 .url(url)
                 .build();
 
-//            int httpResponse1 = ;
-//        System.out.println(httpResponse1);
-//        if (client.retryOnConnectionFailure()) {
-//            System.out.println("retryOnConnectionFailure");
-//        }
-//        Response httpResponse = client.newCall(request).execute()
-
-
         try (Response httpResponse = client.newCall(request).execute()) {
 
 
             int code = httpResponse.code();
             System.out.println("code: " + code);
             if (code == 200) {
-//                Controller controller = new Controller();
-//                controller.checkLogeList();
+                Controller controller = new Controller();
+
+                if (!controller.logeListIsDelivered()) {
+
+                    controller.getJsonLoge();// todo
+                    //todo отправить jsonLoge;
+
+                }
+
                 return httpResponse.body().string();
             } else {
                 return null;
             }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
+        //! todo исправить
 
+        return null;
     }
 }
