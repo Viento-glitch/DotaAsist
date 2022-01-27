@@ -3,6 +3,7 @@ package ru.sa.dotaassist.client;
 import java.io.File;
 import java.sql.*;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 public class DatabaseManager {
@@ -15,9 +16,9 @@ public class DatabaseManager {
     private final String USER_CHECKBOX_TABLE_NAME = "update_checkbox";
     private final String COLUMN_UPDATE_NAME = "update_boolean";
 
-    public final String USER_LOG_TABLE_ID = "id";
-    public final String USER_LOG_TABLE_SENT_TO_SERVER = "given_to_server";
     public final String USER_LOG_TABLE_NAME = "date_log";
+    public final String USER_LOG_TABLE_ID = "id";
+    public final String USER_LOG_TABLE_IS_DELIVERED_SERVER = "given_to_server";
     public final String USER_LOG_COLUMN_START = "start_date";
     public final String USER_LOG_COLUMN_END = "end_date";
 
@@ -59,7 +60,7 @@ public class DatabaseManager {
         DatabaseManager databaseManager = new DatabaseManager();
         try {
             databaseManager.openConnection();
-            System.out.println(databaseManager.getDateLoge(databaseManager.USER_LOG_COLUMN_END, 1));
+//            databaseManager.setDeliveredList();
 
         } catch (ClassNotFoundException | SQLException e) {
             e.printStackTrace();
@@ -71,7 +72,7 @@ public class DatabaseManager {
     public void firstLoad() throws SQLException, ClassNotFoundException {
         this.makeDatabase();
         this.openConnection();
-        this.makeSchema();
+        this.makeSchemaUuidContainer();
 
         UUID uuid = generateUUID();
         this.initUser(uuid);
@@ -355,9 +356,9 @@ public class DatabaseManager {
         }
     }
 
-    private void makeSchema() throws SQLException {
+    private void makeSchemaUuidContainer() throws SQLException {
         final String query = "CREATE TABLE " + USER_INFO_TABLE_NAME + " (\n" +
-                "uuid VARCHAR(100));";
+                "uuid VARCHAR(36));";
         try (Statement statement = connection.createStatement()) {
             statement.execute(query);
             System.out.println("Table : " + USER_INFO_TABLE_NAME + " is created.");
@@ -367,7 +368,7 @@ public class DatabaseManager {
     private void makeLogSchema() {
         final String query = "CREATE TABLE " + USER_LOG_TABLE_NAME + " (\n" +
                 USER_LOG_TABLE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
-                USER_LOG_TABLE_SENT_TO_SERVER + " INTEGER(1) DEFAULT 0, \n" +
+                USER_LOG_TABLE_IS_DELIVERED_SERVER + " INTEGER(1) DEFAULT 0, \n" +
                 USER_LOG_COLUMN_START + " VARCHAR(50) NOT NULL, \n" +
                 USER_LOG_COLUMN_END + " VARCHAR(50) NOT NULL); ";
         try (Statement statement = connection.createStatement()) {
@@ -381,7 +382,7 @@ public class DatabaseManager {
     public void insertDate(Date startDate, Date endDate) {
         String query = "INSERT INTO " + USER_LOG_TABLE_NAME + " \n" +
                 "('" + USER_LOG_COLUMN_START + "' , '" + USER_LOG_COLUMN_END + "') \n" +
-                "VALUES('" + startDate.toString() + "','" + endDate.toString() + "')";
+                "VALUES('" + startDate.toString() + "' , '" + endDate.toString() + "')";
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(query);
         } catch (SQLException e) {
@@ -410,7 +411,7 @@ public class DatabaseManager {
         try (Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(query);
             if (resultSet.next()) {
-                int result = resultSet.getInt(USER_LOG_TABLE_SENT_TO_SERVER);
+                int result = resultSet.getInt(USER_LOG_TABLE_IS_DELIVERED_SERVER);
                 if (result == 0) {
                     return false;
                 } else if (result == 1) {
@@ -431,5 +432,26 @@ public class DatabaseManager {
             return resultSet.getString(columnStartOrEnd);
         }
 
+    }
+
+    public void setDeliveredList() throws SQLException, ClassNotFoundException {
+        DatabaseManager databaseManager  = new DatabaseManager();
+        databaseManager.openConnection();
+
+        Controller controller = new Controller();
+        List<Integer> listOfUndeliveredID = controller.getListOfUndeliveredID();
+
+        for (int i = 0; i < listOfUndeliveredID.size(); i++) {
+            int id = listOfUndeliveredID.get(i);
+            String query = "UPDATE " +
+                    USER_LOG_TABLE_NAME +
+                    " SET " + USER_LOG_TABLE_IS_DELIVERED_SERVER + " = " + "1" +
+                    " WHERE " + USER_LOG_TABLE_ID + " = " + id + ";";
+
+            try (Statement statement = connection.createStatement()) {
+                statement.execute(query);
+            }
+        }
+        databaseManager.closeConnection();
     }
 }

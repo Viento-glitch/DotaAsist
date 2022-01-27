@@ -97,9 +97,11 @@ public class Runner {
                     ContainerJson containerJson = controller.getJsonLoge();
                     Gson gson = new GsonBuilder().setPrettyPrinting().create();
                     String json = gson.toJson(containerJson);
-
                     String result = controller.post(URL + "/sendLoge", json);
-                    System.out.println(result);
+                    System.out.println("result post "+result);
+                    if (result.equals("{\"code\":1,\"message\":\"All ok\"}")){
+                        databaseManager.setDeliveredList();
+                    }
 
                 } catch (SQLException | ClassNotFoundException e) {
                     e.printStackTrace();

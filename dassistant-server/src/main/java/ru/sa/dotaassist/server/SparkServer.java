@@ -25,8 +25,11 @@ public class SparkServer {
         Spark.post("/sendLoge", (request, response) -> {
             ContainerJson containerJson = gson.fromJson(request.body(), ContainerJson.class);
 
+            DatabaseManager databaseManager = new DatabaseManager();
+            databaseManager.openConnection();
             for (Session session : containerJson.getSessions()) {
                 System.out.println(containerJson.getUuid() + ": " + session);
+                databaseManager.insertDatа(containerJson.getUuid(), session.getStartDate(), session.getEndDate());
             }
 
             return new LogResponse(1, "All ok");

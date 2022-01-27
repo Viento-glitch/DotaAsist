@@ -125,7 +125,7 @@ public class Controller {
         return true;
     }
 
-    public List<Integer> getListOfUndelivered() throws SQLException, ClassNotFoundException {
+    public List<Integer> getListOfUndeliveredID() throws SQLException, ClassNotFoundException {
         DatabaseManager databaseManager = new DatabaseManager();
         try {
             databaseManager.openConnection();
@@ -157,7 +157,7 @@ public class Controller {
         try {
             databaseManager.openConnection();
 
-            List<Integer> undeliveredIDList = getListOfUndelivered();
+            List<Integer> undeliveredIDList = getListOfUndeliveredID();
 
             String uuid = databaseManager.getUuid();
             List<Session> sessionList = new ArrayList<>();
@@ -232,6 +232,7 @@ public class Controller {
         Response response = client.newCall(request).execute();
         return response.body().string();
     }
+
 
 }
 
