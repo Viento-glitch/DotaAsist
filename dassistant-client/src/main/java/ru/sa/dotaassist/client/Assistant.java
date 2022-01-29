@@ -81,21 +81,21 @@ public class Assistant implements NativeKeyListener {
             i++;
         }
 
-        String time = "";
+        StringBuilder time = new StringBuilder();
         for (int j = i + 1; j < text.length(); j++) {
-            time += text.charAt(j);
+            time.append(text.charAt(j));
         }
-        return Integer.parseInt(time);
+        return Integer.parseInt(time.toString());
     }
 
     private String takeAegTime(String text) {
         int i = 0;
-        String aegisTime = "";
+        StringBuilder aegisTime = new StringBuilder();
         while (text.charAt(i) != ' ') {
-            aegisTime += text.charAt(i);
+            aegisTime.append(text.charAt(i));
             i++;
         }
-        return aegisTime;
+        return aegisTime.toString();
     }
 
     boolean isNumeric(String text) {
@@ -115,9 +115,7 @@ public class Assistant implements NativeKeyListener {
                     .getSystemClipboard()
                     .getData(DataFlavor.stringFlavor);
 
-        } catch (UnsupportedFlavorException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (UnsupportedFlavorException | IOException e) {
             e.printStackTrace();
         }
         return text;
@@ -125,12 +123,6 @@ public class Assistant implements NativeKeyListener {
 
     @Override
     public void nativeKeyReleased(NativeKeyEvent e) {
-//        String key = NativeKeyEvent.getKeyText(e.getKeyCode());
-//        if(key.equals("C")){
-//            isCtrlPressed = false;
-//            isAllSelected = false;
-//            isAllCopied = false;
-//        }
     }
 
     @Override

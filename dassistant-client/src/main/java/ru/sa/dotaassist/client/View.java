@@ -6,8 +6,8 @@ import org.jnativehook.NativeHookException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.SQLException;
 import java.util.Date;
+
 
 class View extends JFrame {
     static final String VERSION = "1.0-SNAPSHOT";
@@ -29,7 +29,7 @@ class View extends JFrame {
 
 
         setBounds(900, 450, 330, 115);
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
@@ -139,7 +139,8 @@ class View extends JFrame {
 
 
         Container container = this.getContentPane();
-        container.setLayout(new GridLayout(3, 1, 1, 2));
+        container.setLayout(new GridLayout(2, 1, 1, 2));
+//        container.setLayout(new GridLayout(3, 1, 1, 2));
         buttonActivate.addActionListener(new ButtonEventListenerActivate());
 
         buttonDeactivate.addActionListener(new ButtonEventListenerDeactivate());
@@ -151,19 +152,14 @@ class View extends JFrame {
         container.add(buttonBugReport);
         container.add(buttonActivate);
         container.add(buttonDeactivate);
-        container.add(autoUpdateCheckBox);
+//        container.add(autoUpdateCheckBox);
     }
 
-    public void warningMessage() {
-        JOptionPane warningMessage = new JOptionPane();
-        warningMessage.showMessageDialog(null,
-                "                                         Внимание!\n" +
-                        "Для улучшения качества обслуживания \n" +
-                        "отслеживается продолжительность запущенной программы", "", JOptionPane.WARNING_MESSAGE, null);
+    public void warningMessage(String message) {
+        JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE, null);
     }
 
-
-    class CheckboxAction extends AbstractAction {
+    static class CheckboxAction extends AbstractAction {
         public CheckboxAction() {
             super();
         }
@@ -171,23 +167,18 @@ class View extends JFrame {
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
             JCheckBox cbLog = (JCheckBox) actionEvent.getSource();
-            try {
-                DatabaseManager databaseManager = new DatabaseManager();
-                databaseManager.openConnection();
-                if (cbLog.isSelected()) {
-                    databaseManager.setAutoUpdateBoolean(true);
-                    System.out.println(databaseManager.getUpdateBooleanFromDB());
-                    System.out.println("AutoUpdating is enabled");
-                } else {
-                    databaseManager.setAutoUpdateBoolean(false);
-                    System.out.println("AutoUpdating is disabled");
-                    databaseManager.closeConnection();
+            DatabaseManager databaseManager = new DatabaseManager();
+            if (cbLog.isSelected()) {
+                databaseManager.setAutoUpdateBoolean(true);
+                try {
+                    System.out.println(databaseManager.isAutoUpdateEnabled());
+                    System.out.println("AutoUpdating is activated");
+                } catch (DbException e) {
+                    e.printStackTrace();
                 }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (SQLException e) {
-                e.printStackTrace();
-
+            } else {
+                databaseManager.setAutoUpdateBoolean(false);
+                System.out.println("AutoUpdating is deactivated");
             }
         }
     }
@@ -197,51 +188,47 @@ class View extends JFrame {
     }
 
 
-    class ButtonEventListenerInstruction implements ActionListener {
+    static class ButtonEventListenerInstruction implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             JOptionPane.showMessageDialog(null,
-                    "Данная программа создана для простого отслеживания таймингов Аегиса и Рошана.\n" +
-                            "\n" +
-                            "После смерти Рошана вы должны:\n" +
-                            "   1.1. Зафиксировать время.\n" +
+                    """
+                            Данная программа создана для простого отслеживания таймингов Аегиса и Рошана.
 
-                            "   1.2. Открыть чат.(Enter)\n" +
+                            После смерти Рошана вы должны:
+                               1.1. Зафиксировать время.
+                               1.2. Открыть чат.(Enter)
+                               1.3. Переписать зафиксированное время в чат в формате одного числа.
+                                   1.3.1. Если время 33:01 ввести потребуется 3301
+                               1.4. Зажать клавишу "Ctrl"
+                                   1.4.1. Нажать клавишу "A"
+                                   1.4.2. Нажать клавишу "C"
 
-                            "   1.3. Переписать зафиксированное время в чат в формате одного числа.\n" +
-                            "       1.3.1. Если время 33:01 ввести потребуется 3301\n" +
 
-                            "   1.4. Зажать клавишу \"Ctrl\"\n" +
-                            "       1.4.1. Нажать клавишу \"A\"\n" +
-                            "       1.4.2. Нажать клавишу \"C\"\n" +
-                            "\n" +
-                            "\n" +
-                            "Если вы не зафиксировали время смерти рошана\n" +
-                            "   2.1. Обнаружить владельца Аегиса\n" +
-
-                            "   2.2. Посмотреть на аегисе его оставшееся время\n" +
-                            "       2.2.1. Зафиксировать текущее время.\n" +
-
-                            "   2.3. Записать время.\n" +
-                            "       2.3.1. Записать оставшееся время Аегиса одной цифрой с знаком минус(-400 если 4:00)\n" +
-                            "       2.3.2. Добавить пробел.\n" +
-                            "       2.3.3. Записать Зафиксированное время в виде одной цифры (см выше п. 2.2.1)   \n" +
-
-                            "   2.4 Выполнить пункт 1.4 , 1.4.1 , 1.4.2\n" +
-                            "   \n" +
-                            "   \n" +
-                            "Получение результата\n" +
-                            "   1. Зижмите клавишу \"Ctrl\"\n" +
-                            "       1.1. нажмите клавишу \"V\"\n" +
-                            "В качестве результата вы получите строку такого формата.\n" +
-                            "3301 (A)38:01  (R)41:01-44:01\n",
+                            Если вы не зафиксировали время смерти рошана
+                               2.1. Обнаружить владельца Аегиса
+                               2.2. Посмотреть на аегисе его оставшееся время
+                                   2.2.1. Зафиксировать текущее время.
+                               2.3. Записать время.
+                                   2.3.1. Записать оставшееся время Аегиса одной цифрой с знаком минус(-400 если 4:00)
+                                   2.3.2. Добавить пробел.
+                                   2.3.3. Записать Зафиксированное время в виде одной цифры (см выше п. 2.2.1)  \s
+                               2.4 Выполнить пункт 1.4 , 1.4.1 , 1.4.2
+                              \s
+                              \s
+                            Получение результата
+                               1. Зижмите клавишу "Ctrl"
+                                   1.1. нажмите клавишу "V"
+                            В качестве результата вы получите строку такого формата.
+                            3301 (A)38:01  (R)41:01-44:01
+                            """,
                     "Инструкция",
                     JOptionPane.PLAIN_MESSAGE
             );
         }
     }
 
-    class ButtonEventListenerBugReport implements ActionListener {
+    static class ButtonEventListenerBugReport implements ActionListener {
 
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -257,51 +244,21 @@ class View extends JFrame {
             JTextPane bugReportMessage = new JTextPane();
 
             bugReportMessage.setBounds(0, 0, bugReportFrame.getWidth(), bugReportFrame.getHeight());
-//            bugReportMessage.setSize(MAXIMIZED_HORIZ,MAXIMIZED_VERT);
             panel.add(bugReportMessage);
-            JButton sandBugReportButton = new JButton("Отправить");
+        }
 
-
-//
-//            bugReportFrame.setBounds(900, 450, 480, 400);
-//            bugReportFrame.setLayout(new GridLayout(3, 1, 2, 3));
-//
-//
-//            JTextPane dialog = new JTextPane();
-//            dialog.setText("Данное поле было создано с целью  повышения качества приложения \n" +
-//                    "Для этого вы можете в поле ниже написать как получили ту или инную ошибку \n"
-//            );
-//            dialog.setEditable(false);
-//            sandBugReportButton.addActionListener(new SandBugReportActionListener());
-//            sandBugReportButton.add(bugReportMessage);
-
-
-//            bugReportFrame.add(dialog);
-//            bugReportFrame.add(bugReportMessage);
-//            bugReportFrame.add(sandBugReportButton);
-//            bugReportFrame.setVisible(true);
-
-            /**todo
-             *  создать дочернее окно с полем для ввода
-             */
+        static class SandBugReportActionListener implements ActionListener {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(null,
+                        "Сообщение было сохранено и по возможности будет отправлено",
+                        "Благодарю за обращение", JOptionPane.PLAIN_MESSAGE, null);
+                    //to do реализовать сохранение сообщения
+            }
         }
     }
 
-    class SandBugReportActionListener implements ActionListener {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JOptionPane.showMessageDialog(null,
-                    "Сообщение было сохранено и по возможности будет отправлено",
-                    "Благодарю за обращение", JOptionPane.PLAIN_MESSAGE, null);
-
-
-            //todo реализовать сохранение сообщения
-
-
-        }
-    }
-
-    class ButtonEventListenerActivate implements ActionListener {
+    static class ButtonEventListenerActivate implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -313,7 +270,7 @@ class View extends JFrame {
         }
     }
 
-    class ButtonEventListenerDeactivate implements ActionListener {
+    static class ButtonEventListenerDeactivate implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -324,5 +281,6 @@ class View extends JFrame {
         }
     }
 }
+
 
 

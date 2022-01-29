@@ -3,8 +3,10 @@ package ru.sa.dotaassist.server;
 import com.google.gson.Gson;
 import ru.sa.dotaassist.domain.ContainerJson;
 import ru.sa.dotaassist.domain.LogResponse;
-import ru.sa.dotaassist.domain.Session;
+import spark.Request;
+import spark.Response;
 import spark.Spark;
+
 
 public class SparkServer {
 
@@ -12,32 +14,30 @@ public class SparkServer {
 
     public static void main(String[] args) {
         System.out.println("Starting server...");
+        //не убирать, в конструкторе проверка на первый запуск
+        Controller controller = new Controller();
+
         Config config = new Config();
 
-
-        Spark.get("/sayhello", (request, response) -> {
-            return "Hello buddy!!!";
-            // uuid; event_type; event_datetime; received_datetime; domain;
-        });
-
+        Spark.get("/sayhello", (request, response) -> "Hello buddy!!!");
 
         Spark.get("/lastversion", (request, response) -> "1.0-SNAPSHOT");
-        Spark.post("/sendLoge", (request, response) -> {
-            ContainerJson containerJson = gson.fromJson(request.body(), ContainerJson.class);
-
-            DatabaseManager databaseManager = new DatabaseManager();
-            databaseManager.openConnection();
-            for (Session session : containerJson.getSessions()) {
-                System.out.println(containerJson.getUuid() + ": " + session);
-                databaseManager.insertDatа(containerJson.getUuid(), session.getStartDate(), session.getEndDate());
-            }
-
-            return new LogResponse(1, "All ok");
-        }, new JsonTransformer());
-
-        //localhost:9090/the/path/to/endpoint?var1=value1&var2=value2
+        Spark.post("/sendLoge", SparkServer::handle, new JsonTransformer());
 
         System.out.println("Open : " + config.getHost() + ":" + config.getPort());
         System.out.println("Server started successfully.");
+    }
+
+    private static Object handle(Request request, Response response) {
+        ContainerJson containerJson = gson.fromJson(request.body(), ContainerJson.class);
+
+        DatabaseManager databaseManager = new DatabaseManager();
+
+        try {
+            databaseManager.insertINDateLog(containerJson);
+        } catch (DbException e) {
+            System.err.println("Can't insert in Date Log\n"+e);
+        }
+        return new LogResponse(1, "All ok");
     }
 }

@@ -1,178 +1,98 @@
 package ru.sa.dotaassist.client;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import okhttp3.*;
 import ru.sa.dotaassist.domain.ContainerJson;
 import ru.sa.dotaassist.domain.Session;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Controller {
 
-    public static void main(String[] args) {
-        Controller controller = new Controller();
-        try {
-            System.out.println(controller.getJsonLoge());
-
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    Controller(View view, DatabaseManager databaseManager) {
-        if (isFirstLoad(databaseManager)) {
-            databaseManager = new DatabaseManager();
-            try {
-                databaseManager.firstLoad();
-                view.warningMessage();
-
-            } catch (SQLException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-
-        try {
-            databaseManager.openConnection();
-
-
-            //            String currentVersion = databaseManager.getLastVersionInDataBase();
-
-//            if (currentVersion.equals(lastVersion)) {
-//                System.out.println("latest version");
-//            } else {
-//                System.out.println("not the latest version");
-//
-//                todo реализовать
-//                if (isAutoUpdateTrue()) {
-//
-//                } else {
-//
-//                }
-//            }
-//            System.out.println(databaseManager.isLastVersion());
-
-
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
-
-        view.setCheckBoxStartValue(databaseManager.getUpdateBooleanFromDB());
-    }
 
     public Controller() {
-
     }
 
-    public boolean isFirstLoad(DatabaseManager databaseManager) {
-        databaseManager = new DatabaseManager();
-        try {
-            return !databaseManager.isDatabaseExists();
-        } catch (SQLException e) {
-            e.printStackTrace();
+    Controller(View view) {
+        if (isFirstLoad()) {
+            DatabaseManager databaseManager = new DatabaseManager();
+            try {
+                databaseManager.firstLoad();
+                view.warningMessage("                                         Внимание!\nДля улучшения качества обслуживания \nотслеживается продолжительность запущенной программы");
+
+
+                boolean autoUpdateEnabled = databaseManager.isAutoUpdateEnabled();
+                view.setCheckBoxStartValue(autoUpdateEnabled);
+            } catch (FirstLoadException | DbException e) {
+                view.warningMessage("Ошибка инициализации БД! \n" +
+                        "Свяжитесь с разработчиком \n" + e);
+            }
         }
-        return true;
     }
 
-    public boolean isAutoUpdateTrue() {
-        DatabaseManager databaseManager = new DatabaseManager();
-        try {
-            databaseManager.openConnection();
-            return databaseManager.getUpdateBooleanFromDB();
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        } finally {
-            databaseManager.closeConnection();
-        }
-        return false;
+    public boolean isFirstLoad() {
+        return !isDatabaseExists();
+    }
+
+    public boolean isDatabaseExists() {
+        File file = new File(DatabaseManager.FILE_PATH);
+        return file.exists();
     }
 
     public void saveDuration(Date startDate, Date endDate) {
         DatabaseManager databaseManager = new DatabaseManager();
-        try {
-            databaseManager.openConnection();
-            databaseManager.insertDate(startDate, endDate);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            databaseManager.closeConnection();
-        }
+        databaseManager.insertDate(startDate, endDate);
     }
 
     public boolean logeListIsDelivered() {
         DatabaseManager databaseManager = new DatabaseManager();
+        boolean result = false;
         try {
-            databaseManager.openConnection();
 
-            int count = 0;
-            count = databaseManager.getMaxIDOfDateLoge();
+            int count = databaseManager.getMaxIDOfDateLoge();
             if (count != 0) {
                 for (int id = 1; id <= count; id++) {
                     if (!databaseManager.isDelivered(id)) {
-                        return false;
+                        result = true;
                     }
                 }
             }
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
-            databaseManager.closeConnection();
         }
-        return true;
+        return result;
     }
 
-    public List<Integer> getListOfUndeliveredID() throws SQLException, ClassNotFoundException {
+    public ContainerJson getJsonLoge() {
         DatabaseManager databaseManager = new DatabaseManager();
+
         try {
-            databaseManager.openConnection();
-
-            int count = databaseManager.getMaxIDOfDateLoge();
-
-            List<Integer> undeliveredIDList = new ArrayList<>();
-            for (int id = 1; id <= count; id++) {
-                if (!databaseManager.isDelivered(id)) {
-                    undeliveredIDList.add(id);
-                }
-            }
-            if (!undeliveredIDList.isEmpty()) {
-                return undeliveredIDList;
-            } else {
-                System.out.println("undeliveredList is clear.");
-                return null;
-            }
-
-//
-            //todo отправить json с старт датой и end датой
-        } finally {
-            databaseManager.closeConnection();
-        }
-    }
-
-    public ContainerJson getJsonLoge() throws SQLException, ClassNotFoundException {
-        DatabaseManager databaseManager = new DatabaseManager();
-        try {
-            databaseManager.openConnection();
-
-            List<Integer> undeliveredIDList = getListOfUndeliveredID();
+            databaseManager.dataSource.getConnection();
+            List<Integer> undeliveredIDList = databaseManager.getListOfUndeliveredID();
 
             String uuid = databaseManager.getUuid();
             List<Session> sessionList = new ArrayList<>();
             ContainerJson containerJson = null;
             for (int undeliveredID : undeliveredIDList) {
-                String startDate = databaseManager.getDateLoge(databaseManager.USER_LOG_COLUMN_START, undeliveredID);
-                String endDate = databaseManager.getDateLoge(databaseManager.USER_LOG_COLUMN_END, undeliveredID);
+                String startDate = databaseManager.getDateLoge(DatabaseManager.USER_LOG_COLUMN_START, undeliveredID);
+                String endDate = databaseManager.getDateLoge(DatabaseManager.USER_LOG_COLUMN_END, undeliveredID);
                 sessionList.add(new Session(startDate, endDate));
-
                 containerJson = new ContainerJson(uuid, sessionList);
             }
-
             return containerJson;
-        } finally {
-            databaseManager.closeConnection();
+        } catch (Exception e) {
+            View view = new View();
+            view.warningMessage("Неудалось поллучить JsonLoge,\n" +
+                    "Свяжитесь с разработчиком");
+            return null;
         }
     }
 
@@ -188,37 +108,11 @@ public class Controller {
 
         try {
             Response response = client.newCall(request).execute();
-            return response.code() == 200; //todo найти нормальную константу
+            return response.isSuccessful();
         } catch (IOException e) {
             return false;
         }
     }
-
-//    public boolean sendJson(String jsonLoge) {
-//        MediaType JSON = MediaType.parse(jsonLoge);
-//
-//
-//
-//
-//
-//        //        Runner runner = new Runner();
-////        OkHttpClient client = new OkHttpClient.Builder()
-////                .readTimeout(10,TimeUnit.SECONDS)
-////                .retryOnConnectionFailure(true)
-////                .connectTimeout(5,TimeUnit.SECONDS)
-////                .connectionPool(new ConnectionPool(10,5,TimeUnit.SECONDS))
-////                .build();
-////
-////        Request request = new Request.Builder()
-////                .url(runner.URL)
-////                .build();
-////
-////        try () {
-////
-////        }
-////        return false;
-//    }
-
 
     String post(String url, String json) throws IOException {
         OkHttpClient client = new OkHttpClient();
@@ -230,9 +124,37 @@ public class Controller {
                 .post(body)
                 .build();
         Response response = client.newCall(request).execute();
-        return response.body().string();
+        return Objects.requireNonNull(response.body()).string();
     }
 
 
+    public void hasDelivered() {
+        DatabaseManager databaseManager = new DatabaseManager();
+        try {
+            databaseManager.setDeliveredList();
+        } catch (DbException e) {
+            View view = new View();
+            view.warningMessage("База данных не была обновлена,колонка :\n" +
+                    "Свяжитесь с разработчиком \n" + DatabaseManager.USER_LOG_TABLE_IS_DELIVERED_SERVER + "\n" + e);
+        }
+    }
+
+    public String sendDateLoge(String url) {
+        String result;
+        try {
+            ContainerJson containerJson = getJsonLoge();
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(containerJson);
+            String json = gson.toJson(containerJson);
+            result = post(url + "/sendLoge", json);
+            System.out.println("result post " + result);
+            return result;
+        } catch (IOException e) {
+            View view = new View();
+            view.warningMessage("Не удалось отправить DateLoge на сервер\n" +
+                    "Свяжитесь с разработчиком \n" + e);
+            return null;
+        }
+    }
 }
 

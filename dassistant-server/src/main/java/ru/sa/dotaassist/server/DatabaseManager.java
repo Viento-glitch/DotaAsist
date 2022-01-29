@@ -1,118 +1,172 @@
 package ru.sa.dotaassist.server;
 
-import java.io.File;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import ru.sa.dotaassist.domain.ContainerJson;
+import ru.sa.dotaassist.domain.Session;
+
 import java.sql.*;
+import java.util.List;
 
 public class DatabaseManager {
 
-    private final String FILE_PATH = "C:\\SQLite\\Server_logs.db";
+    public static final String FILE_PATH = "C:\\SQLite\\Server_logs.db";
 
-    public final String SERVER_DATE_LOG_TABLE_NAME = "date_log";
-    public final String SERVER_DATE_LOG_TABLE_ID = "id";
-    public final String SERVER_DATE_LOG_COLUMN_UUID = "uuid";
-    public final String SERVER_DATE_LOG_COLUMN_START = "start_date";
-    public final String SERVER_DATE_LOG_COLUMN_END = "end_date";
+    public static final String SERVER_DATE_LOG_TABLE_NAME = "date_log";
+    public static final String SERVER_DATE_LOG_COLUMN_ID = "id";
+    public static final String SERVER_DATE_LOG_COLUMN_DATETIME = "date_time";
+    public static final String SERVER_DATE_LOG_COLUMN_START = "start_date";
+    public static final String SERVER_DATE_LOG_COLUMN_END = "end_date";
 
-    private Connection connection;
+    public static final String SERVER_USER_LIST_TABLE_NAME = "user_list";
+    public static final String SERVER_USER_COLUMN_ID = "user_id";
+    public static final String SERVER_USER_LIST_COLUMN_NICK = "user_nickname";
+    public static final String SERVER_USER_LIST_COLUMN_UUID = "uuid";
+
     private String lastVersionOnDatabase = null;
+    final HikariDataSource dataSource;
 
-    public static void main(String[] args) {
-        DatabaseManager databaseManager = new DatabaseManager();
-        try {
-            if(!databaseManager.isDatabaseExists()){
-                databaseManager.firstLoad();
-            }
-            databaseManager.openConnection();
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
+    public DatabaseManager() {
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getConnectionUrl());
+
+        dataSource = new HikariDataSource(config);
+    }
+
+
+    void makeUserListSchema() throws DbException {
+        String query = "CREATE TABLE " + SERVER_USER_LIST_TABLE_NAME + "(\n" +
+                SERVER_USER_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
+                SERVER_USER_LIST_COLUMN_NICK + " VARCHAR(50) , \n" +
+                SERVER_USER_LIST_COLUMN_UUID + " VARCHAR(36) NOT NULL); ";
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
+            statement.executeUpdate(query);
+            System.out.println("UserList table has been created.\n" +
+                    "Name of UserList table: " + SERVER_USER_LIST_TABLE_NAME + "\n" +
+                    "schema:\n" + query + "\n");
+        } catch (SQLException e) {
+            throw new DbException("Can't make UserList witth this query " +
+                    "(" + query + ")", e);
         }
     }
-
-    void firstLoad() throws SQLException, ClassNotFoundException {
-        this.makeDatabase();
-        this.openConnection();
-        makeDateLogSchema();
-
-
-        this.connection.close();
-    }
-
-//    void makeSchema() {
-//        tableName
-//        /** id
-//         *  uuid user
-//         *  startDate
-//         *  endDate
-//         *
-//         */
-//    }
-
 
     private String getConnectionUrl() {
         return "jdbc:sqlite:\\" + FILE_PATH;
     }
 
-    public void openConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("org.sqlite.JDBC");
-        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + FILE_PATH);
-        //todo make worked with getConnectionUrl();
-        if (connection != null) {
-            System.out.println("Connected");
-            this.connection = connection;
-        }
-    }
 
-    public boolean isDatabaseExists() throws SQLException {
-        File file = new File(FILE_PATH);
-        if (file.exists()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void makeDatabase() throws SQLException {
+    void makeDatabase() throws DbException {
         String url = getConnectionUrl();
-        try (Connection connection = DriverManager.getConnection(url)) {
+        try (Connection connection = dataSource.getConnection()) {
             if (connection != null) {
                 DatabaseMetaData meta = connection.getMetaData();
                 System.out.println("The driver name is " + meta.getDriverName());
-                System.out.println("A new database has been created, path: " + url);
+                System.out.println("A new database has been created, path: " + url + "\n");
             }
+        } catch (SQLException e) {
+            throw new DbException("Can't make new Database.", e);
         }
     }
 
-    private void makeDateLogSchema() {
+    void makeDateLogSchema() throws DbException {
         final String query = "CREATE TABLE " + SERVER_DATE_LOG_TABLE_NAME + " (\n" +
-                SERVER_DATE_LOG_TABLE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
-                SERVER_DATE_LOG_COLUMN_UUID + " VARCHAR(36) NOT NULL, \n" +
+                SERVER_DATE_LOG_COLUMN_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \n" +
+                SERVER_USER_COLUMN_ID + " INTEGER NOT NULL, \n" +
+                SERVER_DATE_LOG_COLUMN_DATETIME + " DATETIME DEFAULT CURRENT_TIMESTAMP, \n" +
                 SERVER_DATE_LOG_COLUMN_START + " VARCHAR(50) NOT NULL, \n" +
-                SERVER_DATE_LOG_COLUMN_END + " VARCHAR(50) NOT NULL); ";
-        System.out.println(query);
-        try (Statement statement = connection.createStatement()) {
+                SERVER_DATE_LOG_COLUMN_END + " VARCHAR(50) NOT NULL, \n" +
+                "FOREIGN KEY(" + SERVER_USER_COLUMN_ID + ") REFERENCES " + SERVER_USER_LIST_TABLE_NAME + "(" + SERVER_USER_COLUMN_ID + ")); ";
+
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()) {
             statement.executeUpdate(query);
+            System.out.println("DateLog table is created.\n" +
+                    "name of DateLog table: " + SERVER_DATE_LOG_TABLE_NAME + "\n" +
+                    "schema:\n" + query + "\n");
+
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new DbException("Can't make Date log schema with this query: \n" +
+                    query + "\n", e);
         }
 
     }
 
-    public boolean insertDatа(String uuid, String startDate, String endDate) {
-        String query = "INSERT INTO " + SERVER_DATE_LOG_TABLE_NAME + " \n('" +
-                SERVER_DATE_LOG_COLUMN_UUID + "' , '" +
-                SERVER_DATE_LOG_COLUMN_START + "' , '" +
-                SERVER_DATE_LOG_COLUMN_END + "') \n" +
-                "VALUES('" +
-                uuid + "' , '" +
-                startDate + "' , ' " +
-                endDate +
-                "');";
-        try (Statement statement = connection.createStatement()) {
-            statement.executeUpdate(query);
-            return true;
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public void insertINDateLog(ContainerJson containerJson) throws DbException {
+        String uuid = containerJson.getUuid();
+        List<Session> sessions = containerJson.getSessions();
+        Integer userId;
+        if (isUuidExists(uuid)) {
+            userId = getUserId(uuid);
+        } else {
+            userId = addNewUuidInDataBase(uuid);
         }
-        return false;
+        String query = "INSERT INTO " + SERVER_DATE_LOG_TABLE_NAME + " \n" +
+                "(" + SERVER_USER_COLUMN_ID + " , " +
+                SERVER_DATE_LOG_COLUMN_START + " , " +
+                SERVER_DATE_LOG_COLUMN_END + ") \n" +
+                "VALUES(? , ? , ?)";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            int count = 0;
+            for (Session session : sessions) {
+                statement.setString(1, String.valueOf(userId));
+                statement.setString(2, session.getStartDate());
+                statement.setString(3, session.getEndDate());
+                statement.addBatch();
+                count++;
+                if (count % 100 == 0 || count == sessions.size()) {
+                    statement.executeBatch();
+                }
+            }
+            System.out.println("Rows added: " + count);
+        } catch (SQLException e) {
+            throw new DbException("Can't insert date with uuid:" + uuid + "\n", e);
+        }
+    }
+
+    private Integer getUserId(String uuid) throws DbException {
+        String query = "SELECT " + SERVER_USER_COLUMN_ID + " FROM " + SERVER_USER_LIST_TABLE_NAME + " WHERE " + SERVER_USER_LIST_COLUMN_UUID +
+                " = ?;";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, uuid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(SERVER_USER_COLUMN_ID);
+            } else {
+                return null;
+            }
+        } catch (SQLException e) {
+            throw new DbException("Can't get user id from " + SERVER_USER_LIST_TABLE_NAME, e);
+        }
+    }
+
+
+    private boolean isUuidExists(String uuid) throws DbException {
+        String query = "SELECT " + SERVER_USER_COLUMN_ID + " FROM " + SERVER_USER_LIST_TABLE_NAME + " WHERE " + SERVER_USER_LIST_COLUMN_UUID +
+                " = ?;";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, uuid);
+            ResultSet resultSet = statement.executeQuery();
+            return resultSet.next();
+        } catch (SQLException e) {
+            throw new DbException("Can't check availability uuid in " + SERVER_USER_LIST_TABLE_NAME, e);
+        }
+    }
+
+    private Integer addNewUuidInDataBase(String uuid) throws DbException {
+        String query = "INSERT INTO " + SERVER_USER_LIST_TABLE_NAME + "(" + SERVER_USER_LIST_COLUMN_UUID + ") VALUES(?)";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, uuid);
+            statement.executeUpdate();
+            return getUserId(uuid);
+        } catch (SQLException e) {
+            throw new DbException("Can't add new UUID in Database\n" +
+                    "UUID:" + uuid, e);
+        }
     }
 }
