@@ -55,8 +55,8 @@ public class Controller {
         try {
             databaseManager.insertDate(startDate, endDate);
         } catch (DbException e) {
-            e.printStackTrace();
-            //todo
+            view.warningMessage("Ошибка инициализации лога\n" +
+                    "Свяжитесь с разработчиком \n" + e);
         }
     }
 
@@ -72,8 +72,8 @@ public class Controller {
                 }
             }
         } catch (DbException | SQLException e) {
-            // todo обработать ошибку
-            e.printStackTrace();
+            view.warningMessage("Ошибка сохранения лога\n" +
+                    "Свяжитесь с разработчиком \n" + e);
         }
         return result;
     }
