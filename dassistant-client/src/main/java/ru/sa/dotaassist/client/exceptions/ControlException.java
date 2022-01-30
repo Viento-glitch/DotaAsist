@@ -1,4 +1,4 @@
-package ru.sa.dotaassist.client;
+package ru.sa.dotaassist.client.exceptions;
 
 public class ControlException extends Exception {
 

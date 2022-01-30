@@ -3,6 +3,9 @@ package ru.sa.dotaassist.client;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import okhttp3.*;
+import ru.sa.dotaassist.client.exceptions.DbException;
+import ru.sa.dotaassist.client.exceptions.FirstLoadException;
+import ru.sa.dotaassist.client.exceptions.StatisticException;
 import ru.sa.dotaassist.domain.ContainerJson;
 import ru.sa.dotaassist.domain.Session;
 
@@ -12,23 +15,28 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Controller {
 
+    private View view;
 
-    public Controller() {
+    private DatabaseManager databaseManager;
+
+    Controller() {
     }
 
-    Controller(View view) {
-        if (isFirstLoad()) {
-            DatabaseManager databaseManager = new DatabaseManager();
+
+    public void init(View view) {
+        this.view = view;
+
+        boolean isFirstLoad = !isDatabaseExists();
+        databaseManager = new DatabaseManager();
+        if (isFirstLoad) {
+
             try {
                 databaseManager.firstLoad();
-                view.warningMessage("                                         Внимание!\nДля улучшения качества обслуживания \nотслеживается продолжительность запущенной программы");
-
-
+                view.warningMessage("\t\t\t\t\t\t\t\t\t\t Внимание!\nДля улучшения качества обслуживания \nотслеживается продолжительность запущенной программы");
                 boolean autoUpdateEnabled = databaseManager.isAutoUpdateEnabled();
                 view.setCheckBoxStartValue(autoUpdateEnabled);
             } catch (FirstLoadException | DbException e) {
@@ -38,25 +46,23 @@ public class Controller {
         }
     }
 
-    public boolean isFirstLoad() {
-        return !isDatabaseExists();
-    }
-
     public boolean isDatabaseExists() {
         File file = new File(DatabaseManager.FILE_PATH);
         return file.exists();
     }
 
     public void saveDuration(Date startDate, Date endDate) {
-        DatabaseManager databaseManager = new DatabaseManager();
-        databaseManager.insertDate(startDate, endDate);
+        try {
+            databaseManager.insertDate(startDate, endDate);
+        } catch (DbException e) {
+            e.printStackTrace();
+            //todo
+        }
     }
 
     public boolean logeListIsDelivered() {
-        DatabaseManager databaseManager = new DatabaseManager();
         boolean result = false;
         try {
-
             int count = databaseManager.getMaxIDOfDateLoge();
             if (count != 0) {
                 for (int id = 1; id <= count; id++) {
@@ -65,15 +71,14 @@ public class Controller {
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (DbException | SQLException e) {
+            // todo обработать ошибку
             e.printStackTrace();
         }
         return result;
     }
 
     public ContainerJson getJsonLoge() {
-        DatabaseManager databaseManager = new DatabaseManager();
-
         try {
             databaseManager.dataSource.getConnection();
             List<Integer> undeliveredIDList = databaseManager.getListOfUndeliveredID();
@@ -89,7 +94,6 @@ public class Controller {
             }
             return containerJson;
         } catch (Exception e) {
-            View view = new View();
             view.warningMessage("Неудалось поллучить JsonLoge,\n" +
                     "Свяжитесь с разработчиком");
             return null;
@@ -114,7 +118,7 @@ public class Controller {
         }
     }
 
-    String post(String url, String json) throws IOException {
+    String post(String url, String json) throws IOException, StatisticException {
         OkHttpClient client = new OkHttpClient();
         final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
 
@@ -124,35 +128,36 @@ public class Controller {
                 .post(body)
                 .build();
         Response response = client.newCall(request).execute();
-        return Objects.requireNonNull(response.body()).string();
+        ResponseBody responseBody = response.body();
+
+        if (responseBody == null) {
+            throw new StatisticException("Can't get result from request: " + url);
+        }
+        return responseBody.string();
     }
 
-
     public void hasDelivered() {
-        DatabaseManager databaseManager = new DatabaseManager();
         try {
             databaseManager.setDeliveredList();
         } catch (DbException e) {
-            View view = new View();
             view.warningMessage("База данных не была обновлена,колонка :\n" +
                     "Свяжитесь с разработчиком \n" + DatabaseManager.USER_LOG_TABLE_IS_DELIVERED_SERVER + "\n" + e);
         }
     }
 
-    public String sendDateLoge(String url) {
+    public String postDateLoge(String url) {
         String result;
         try {
             ContainerJson containerJson = getJsonLoge();
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(containerJson);
             String json = gson.toJson(containerJson);
-            result = post(url + "/sendLoge", json);
+            result = post(url + Runner.SEND_LOG, json);
             System.out.println("result post " + result);
             return result;
-        } catch (IOException e) {
-            View view = new View();
+        } catch (IOException | StatisticException e) {
             view.warningMessage("Не удалось отправить DateLoge на сервер\n" +
-                    "Свяжитесь с разработчиком \n" + e);
+                    "Свяжитесь с разработчиком \n" + e.getMessage());
             return null;
         }
     }

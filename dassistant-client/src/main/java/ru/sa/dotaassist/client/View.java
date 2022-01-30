@@ -2,16 +2,18 @@ package ru.sa.dotaassist.client;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
+import ru.sa.dotaassist.client.exceptions.DbException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Date;
 
-
 class View extends JFrame {
     static final String VERSION = "1.0-SNAPSHOT";
+
     boolean autoUpdateBoolean;
+
     JButton buttonInstruction = new JButton("Инструкция");
     JButton buttonActivate = new JButton("Включить");
     JButton buttonDeactivate = new JButton("Выключить");
@@ -22,11 +24,12 @@ class View extends JFrame {
         this.autoUpdateCheckBox.setSelected(value);
     }
 
-
     public View() {
         super("DAssistant " + VERSION);
-        Date startDate = new Date();
+    }
 
+    public void init(Controller controller) {
+        Date startDate = new Date();
 
         setBounds(900, 450, 330, 115);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -129,7 +132,6 @@ class View extends JFrame {
                  */
 
                 Date endDate = new Date();
-                Controller controller = new Controller();
                 controller.saveDuration(startDate, endDate);
 
 
@@ -139,17 +141,17 @@ class View extends JFrame {
 
 
         Container container = this.getContentPane();
-        container.setLayout(new GridLayout(2, 1, 1, 2));
+        container.setLayout(new GridLayout(3, 1, 1, 1));
 //        container.setLayout(new GridLayout(3, 1, 1, 2));
-        buttonActivate.addActionListener(new ButtonEventListenerActivate());
+        buttonActivate.addActionListener(new ActivateButtonEventListener());
 
-        buttonDeactivate.addActionListener(new ButtonEventListenerDeactivate());
+        buttonDeactivate.addActionListener(new DeactivateButtonEventListener());
         buttonInstruction.addActionListener(new ButtonEventListenerInstruction());
         buttonBugReport.addActionListener(new ButtonEventListenerBugReport());
         autoUpdateCheckBox.addActionListener(new CheckboxAction());
 
         container.add(buttonInstruction);
-        container.add(buttonBugReport);
+//        container.add(buttonBugReport);
         container.add(buttonActivate);
         container.add(buttonDeactivate);
 //        container.add(autoUpdateCheckBox);
@@ -169,16 +171,22 @@ class View extends JFrame {
             JCheckBox cbLog = (JCheckBox) actionEvent.getSource();
             DatabaseManager databaseManager = new DatabaseManager();
             if (cbLog.isSelected()) {
-                databaseManager.setAutoUpdateBoolean(true);
                 try {
+                    databaseManager.setAutoUpdateBoolean(true);
                     System.out.println(databaseManager.isAutoUpdateEnabled());
                     System.out.println("AutoUpdating is activated");
                 } catch (DbException e) {
                     e.printStackTrace();
+                    //todo
                 }
             } else {
-                databaseManager.setAutoUpdateBoolean(false);
-                System.out.println("AutoUpdating is deactivated");
+                try {
+                    databaseManager.setAutoUpdateBoolean(false);
+                    System.out.println("AutoUpdating is deactivated");
+                } catch (DbException e) {
+                    e.printStackTrace();
+                    //todo
+                }
             }
         }
     }
@@ -258,7 +266,7 @@ class View extends JFrame {
         }
     }
 
-    static class ButtonEventListenerActivate implements ActionListener {
+    static class ActivateButtonEventListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -270,7 +278,7 @@ class View extends JFrame {
         }
     }
 
-    static class ButtonEventListenerDeactivate implements ActionListener {
+    static class DeactivateButtonEventListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
             try {

@@ -1,19 +1,18 @@
 package ru.sa.dotaassist.server;
 
+import ru.sa.dotaassist.domain.ContainerJson;
+
 import java.io.File;
 
 public class Controller {
 
     public Controller() {
-        if(isFirstLoad()){
-            firstBoot();
+        if(!isDatabaseExists()){
+            firstLoad();
         }
     }
 
-    public boolean isFirstLoad(){
-        return !isDatabaseExists();
-    }
-    void firstBoot() {
+    void firstLoad() {
         try {
             DatabaseManager databaseManager = new DatabaseManager();
             System.out.println("""
@@ -43,5 +42,17 @@ public class Controller {
     private boolean isDatabaseExists() {
         File file = new File(DatabaseManager.FILE_PATH);
         return file.exists();
+    }
+
+    static void insertDate(ContainerJson containerJson, DatabaseManager databaseManager) throws DbException {
+        int userId;
+        String uuid = containerJson.getUuid();
+        if (databaseManager.isUuidExists(uuid)) {
+            userId = databaseManager.getUserId(uuid);
+        } else {
+            userId = databaseManager.addNewUuidInDataBase(uuid);
+        }
+
+        databaseManager.insertInDateLog(containerJson.getSessions(), userId);
     }
 }

@@ -1,22 +1,21 @@
 package ru.sa.dotaassist.client;
 
-
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class Timer {
 
-    public static void main(String[] args) {generateRoshanTiming("1543");}
+    public static void main(String[] args) {
+        generateRoshanTiming("1543");
+    }
 
     public static void generateRoshanTiming(String startNumber) {
         String seconds = makeSeconds(startNumber);
         int minutes = makeMinutes(startNumber);
         String result = makeResult(minutes, seconds, startNumber);
-//        System.out.println(result);
         copy(result);
     }
 
@@ -32,26 +31,25 @@ public class Timer {
         aegis.add(":aegis_2018:");
         aegis.add(":aegis_2019:");
 
-        Random rand = new Random();
-        int c = rand.nextInt(aegis.size());
-//        System.out.println(c);
-
-        String selected = aegis.get(c);
-        return selected;
+        Random random = new Random();
+        int c = random.nextInt(aegis.size());
+        return aegis.get(c);
     }
 
     private static String makeResult(int minutes, String seconds, String startNumber) {
         int aeg = minutes + 5;
         int minRoshan = minutes + 8;
         int maxRoshan = minutes + 11;
-//        String textedTime = "" + startNumber + " :ti10_compendium:" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+        return getTextedTime(minutes, seconds, startNumber, aeg, minRoshan, maxRoshan);
+    }
 
-        //бомжвариант
-        //String textedTime = "" + startNumber + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
-
-//     ? с смайликами
-        String textedTime = ":grave:" + minutes + ":" + seconds + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
-        return textedTime;
+    private static String getTextedTime(int minutes, String seconds, String startNumber, int aeg, int minRoshan, int maxRoshan) {
+        if (Runner.ISDEVELOPING) {
+            //     ? с смайликами
+            return ":grave:" + minutes + ":" + seconds + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
+        } else {
+            return "" + startNumber + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+        }
     }
 
     private static String toText(int minutes, String seconds) {
@@ -59,12 +57,11 @@ public class Timer {
     }
 
     private static int makeMinutes(String startNumber) {
-        String mins = "";
+        StringBuilder minutes = new StringBuilder();
         for (int i = 0; i < startNumber.length() - 2; i++) {
-            mins += startNumber.charAt(i);
+            minutes.append(startNumber.charAt(i));
         }
-        int minutes = Integer.parseInt(mins);
-        return minutes;
+        return Integer.parseInt(minutes.toString());
     }
 
     private static String makeSeconds(String startNumber) {
@@ -73,7 +70,6 @@ public class Timer {
         String result = String.valueOf(sec);
         result += String.valueOf(sec2);
 
-//        System.out.println("результат секунд = " + result);
         return result;
     }
 }

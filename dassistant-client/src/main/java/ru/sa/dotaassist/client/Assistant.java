@@ -33,8 +33,8 @@ public class Assistant implements NativeKeyListener {
     }
 
     @Override
-    public void nativeKeyPressed(NativeKeyEvent e) {
-        String key = NativeKeyEvent.getKeyText(e.getKeyCode());
+    public void nativeKeyPressed(NativeKeyEvent event) {
+        String key = NativeKeyEvent.getKeyText(event.getKeyCode());
         if (key.equals(CTRL_KEY_TEXT)) {
             isCtrlPressed = true;
         }
@@ -47,8 +47,8 @@ public class Assistant implements NativeKeyListener {
             isAllCopied = true;
             try {
                 sleep(100);
-            } catch (InterruptedException interruptedException) {
-                interruptedException.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
 
             String text = getText();
@@ -58,19 +58,14 @@ public class Assistant implements NativeKeyListener {
                     int finedTime = timingAegis + Integer.parseInt(takeAegTime(text));
                     String result = String.valueOf(takeTime(text) - finedTime);
                     Timer.generateRoshanTiming(result);
-
-                    isCtrlPressed = false;
-                    isAllSelected = false;
-                    isAllCopied = false;
                 } else {
                     if (isNumeric(text)) {
                         Timer.generateRoshanTiming(text);
-
-                        isCtrlPressed = false;
-                        isAllSelected = false;
-                        isAllCopied = false;
                     }
                 }
+                isCtrlPressed = false;
+                isAllSelected = false;
+                isAllCopied = false;
             }
         }
     }
@@ -123,9 +118,11 @@ public class Assistant implements NativeKeyListener {
 
     @Override
     public void nativeKeyReleased(NativeKeyEvent e) {
+        //not need before
     }
 
     @Override
     public void nativeKeyTyped(NativeKeyEvent e) {
+        //not need before
     }
 }

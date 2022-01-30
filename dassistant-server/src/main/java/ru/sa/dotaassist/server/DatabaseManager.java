@@ -2,7 +2,6 @@ package ru.sa.dotaassist.server;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import ru.sa.dotaassist.domain.ContainerJson;
 import ru.sa.dotaassist.domain.Session;
 
 import java.sql.*;
@@ -33,7 +32,6 @@ public class DatabaseManager {
         dataSource = new HikariDataSource(config);
     }
 
-
     void makeUserListSchema() throws DbException {
         String query = "CREATE TABLE " + SERVER_USER_LIST_TABLE_NAME + "(\n" +
                 SERVER_USER_COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
@@ -46,7 +44,7 @@ public class DatabaseManager {
                     "Name of UserList table: " + SERVER_USER_LIST_TABLE_NAME + "\n" +
                     "schema:\n" + query + "\n");
         } catch (SQLException e) {
-            throw new DbException("Can't make UserList witth this query " +
+            throw new DbException("Can't make UserList with this query " +
                     "(" + query + ")", e);
         }
     }
@@ -54,7 +52,6 @@ public class DatabaseManager {
     private String getConnectionUrl() {
         return "jdbc:sqlite:\\" + FILE_PATH;
     }
-
 
     void makeDatabase() throws DbException {
         String url = getConnectionUrl();
@@ -70,7 +67,7 @@ public class DatabaseManager {
     }
 
     void makeDateLogSchema() throws DbException {
-        final String query = "CREATE TABLE " + SERVER_DATE_LOG_TABLE_NAME + " (\n" +
+        String query = "CREATE TABLE " + SERVER_DATE_LOG_TABLE_NAME + " (\n" +
                 SERVER_DATE_LOG_COLUMN_ID + " INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, \n" +
                 SERVER_USER_COLUMN_ID + " INTEGER NOT NULL, \n" +
                 SERVER_DATE_LOG_COLUMN_DATETIME + " DATETIME DEFAULT CURRENT_TIMESTAMP, \n" +
@@ -92,26 +89,18 @@ public class DatabaseManager {
 
     }
 
-    public void insertINDateLog(ContainerJson containerJson) throws DbException {
-        String uuid = containerJson.getUuid();
-        List<Session> sessions = containerJson.getSessions();
-        Integer userId;
-        if (isUuidExists(uuid)) {
-            userId = getUserId(uuid);
-        } else {
-            userId = addNewUuidInDataBase(uuid);
-        }
+    void insertInDateLog(List<Session> sessions, long userId) throws DbException {
         String query = "INSERT INTO " + SERVER_DATE_LOG_TABLE_NAME + " \n" +
-                "(" + SERVER_USER_COLUMN_ID + " , " +
-                SERVER_DATE_LOG_COLUMN_START + " , " +
+                "(" + SERVER_USER_COLUMN_ID + ", " +
+                SERVER_DATE_LOG_COLUMN_START + ", " +
                 SERVER_DATE_LOG_COLUMN_END + ") \n" +
-                "VALUES(? , ? , ?)";
+                "VALUES(?, ?, ?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             int count = 0;
             for (Session session : sessions) {
-                statement.setString(1, String.valueOf(userId));
+                statement.setLong(1, userId);
                 statement.setString(2, session.getStartDate());
                 statement.setString(3, session.getEndDate());
                 statement.addBatch();
@@ -120,15 +109,41 @@ public class DatabaseManager {
                     statement.executeBatch();
                 }
             }
-            System.out.println("Rows added: " + count);
+            System.out.println("Rows added: " + count + "\n" +
+                    "uuid:"+getUuid(userId));
         } catch (SQLException e) {
-            throw new DbException("Can't insert date with uuid:" + uuid + "\n", e);
+            throw new DbException("Can't insert date with userId:" + userId + "\n", e);
         }
     }
 
-    private Integer getUserId(String uuid) throws DbException {
-        String query = "SELECT " + SERVER_USER_COLUMN_ID + " FROM " + SERVER_USER_LIST_TABLE_NAME + " WHERE " + SERVER_USER_LIST_COLUMN_UUID +
-                " = ?;";
+    public static void main(String[] args) {
+        DatabaseManager databaseManager = new DatabaseManager();
+        try {
+            System.out.println(databaseManager.getUuid(1));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+    }
+
+    String getUuid(long userId) throws DbException {
+        String query = "SELECT " + SERVER_USER_LIST_COLUMN_UUID + " FROM "+SERVER_USER_LIST_TABLE_NAME+ " WHERE " + SERVER_USER_COLUMN_ID + " = ?;";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setLong(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getString(SERVER_USER_LIST_COLUMN_UUID);
+            } else {
+                throw new DbException("Not found userId:" + userId);
+            }
+        } catch (SQLException e) {
+            throw new DbException("Can't take uuid from Database", e);
+        }
+    }
+
+
+    Integer getUserId(String uuid) throws DbException {
+        String query = "SELECT " + SERVER_USER_COLUMN_ID + " FROM " + SERVER_USER_LIST_TABLE_NAME + " WHERE " + SERVER_USER_LIST_COLUMN_UUID + " = ?;";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, uuid);
@@ -143,10 +158,8 @@ public class DatabaseManager {
         }
     }
 
-
-    private boolean isUuidExists(String uuid) throws DbException {
-        String query = "SELECT " + SERVER_USER_COLUMN_ID + " FROM " + SERVER_USER_LIST_TABLE_NAME + " WHERE " + SERVER_USER_LIST_COLUMN_UUID +
-                " = ?;";
+    boolean isUuidExists(String uuid) throws DbException {
+        String query = "SELECT " + SERVER_USER_COLUMN_ID + " FROM " + SERVER_USER_LIST_TABLE_NAME + " WHERE " + SERVER_USER_LIST_COLUMN_UUID + " = ?;";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, uuid);
@@ -157,7 +170,7 @@ public class DatabaseManager {
         }
     }
 
-    private Integer addNewUuidInDataBase(String uuid) throws DbException {
+    Integer addNewUuidInDataBase(String uuid) throws DbException {
         String query = "INSERT INTO " + SERVER_USER_LIST_TABLE_NAME + "(" + SERVER_USER_LIST_COLUMN_UUID + ") VALUES(?)";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {

@@ -30,14 +30,16 @@ public class SparkServer {
 
     private static Object handle(Request request, Response response) {
         ContainerJson containerJson = gson.fromJson(request.body(), ContainerJson.class);
-
         DatabaseManager databaseManager = new DatabaseManager();
-
         try {
-            databaseManager.insertINDateLog(containerJson);
+            // разобраться с userId
+            Controller.insertDate(containerJson, databaseManager);
+
         } catch (DbException e) {
-            System.err.println("Can't insert in Date Log\n"+e);
+            System.err.println("Can't insert in Date Log\n" + e);
         }
         return new LogResponse(1, "All ok");
     }
+
+
 }

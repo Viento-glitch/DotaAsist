@@ -1,6 +1,14 @@
 package ru.sa.dotaassist.domain;
 
-public record Session(String startDate, String endDate) {
+
+public final class Session {
+    private final String startDate;
+    private final String endDate;
+
+    public Session(String startDate, String endDate) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
 
     public String getStartDate() {
         return startDate;
@@ -17,5 +25,7 @@ public record Session(String startDate, String endDate) {
                 ", endDate='" + endDate + '\'' +
                 '}';
     }
+
+
 }
 
