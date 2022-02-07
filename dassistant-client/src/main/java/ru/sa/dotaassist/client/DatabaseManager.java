@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import ru.sa.dotaassist.client.exceptions.DbException;
 import ru.sa.dotaassist.client.exceptions.FirstLoadException;
 
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class DatabaseManager {
-    public static final String FILE_PATH = "C:\\SQLite\\logs.db";
+    public static final String FILE_PATH = String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase").resolve("logs.db"));
 
     public static final String USER_INFO_TABLE_NAME = "user_info";
     public static final String USER_UPDATE_LOG_TABLE_NAME = "user_update_log";
@@ -368,20 +369,15 @@ public class DatabaseManager {
 
 
     public void setDeliveredList() throws DbException {
+        String query = "UPDATE " + USER_LOG_TABLE_NAME + " SET " + USER_LOG_TABLE_IS_DELIVERED_SERVER + " = ?;";
         try (
                 Connection connection = dataSource.getConnection();
-                Statement statement = connection.createStatement()
-        ) {
-            List<Integer> listOfUndeliveredID;
-            listOfUndeliveredID = getListOfUndeliveredID();
-            for (int ignored : listOfUndeliveredID) {
-                String query = "UPDATE " +
-                        USER_LOG_TABLE_NAME +
-                        " SET " + USER_LOG_TABLE_IS_DELIVERED_SERVER + " = " + "1 ;";
-                statement.execute(query);
-            }
+                PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setBoolean(1, true);
+            statement.executeUpdate();
         } catch (SQLException e) {
             throw new DbException("Can't set boolean on table: " + DatabaseManager.USER_LOG_TABLE_NAME, e);
         }
     }
 }
+

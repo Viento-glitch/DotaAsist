@@ -4,12 +4,13 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import ru.sa.dotaassist.domain.Session;
 
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.List;
 
 public class DatabaseManager {
 
-    public static final String FILE_PATH = "C:\\SQLite\\Server_logs.db";
+    public static final String FILE_PATH = String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase").resolve("Server_logs.db"));
 
     public static final String SERVER_DATE_LOG_TABLE_NAME = "date_log";
     public static final String SERVER_DATE_LOG_COLUMN_ID = "id";
@@ -44,7 +45,7 @@ public class DatabaseManager {
                     "Name of UserList table: " + SERVER_USER_LIST_TABLE_NAME + "\n" +
                     "schema:\n" + query + "\n");
         } catch (SQLException e) {
-            throw new DbException("Can't make UserList with this query " +
+            throw new DbException("Can't make UserList with this query :" +
                     "(" + query + ")", e);
         }
     }

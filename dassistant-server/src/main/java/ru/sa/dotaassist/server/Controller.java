@@ -3,15 +3,35 @@ package ru.sa.dotaassist.server;
 import ru.sa.dotaassist.domain.ContainerJson;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 public class Controller {
 
     public Controller() {
+    }
+
+    void controlDatabase() {
+        if(isPackageExists()){
+            makePackage();
+        }
+
         if(!isDatabaseExists()){
             firstLoad();
         }
     }
 
+    private void makePackage() {
+        String path = String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase"));
+        boolean result = new File(path).mkdir();
+        if (result) {
+            System.out.println("Package has been created \n" +
+                    "path:" + path);
+        }
+    }
+
+    public boolean isPackageExists() {
+        return new File(String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase"))).isDirectory();
+    }
     void firstLoad() {
         try {
             DatabaseManager databaseManager = new DatabaseManager();

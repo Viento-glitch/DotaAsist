@@ -9,8 +9,12 @@ import ru.sa.dotaassist.client.exceptions.StatisticException;
 import ru.sa.dotaassist.domain.ContainerJson;
 import ru.sa.dotaassist.domain.Session;
 
+import javax.net.ssl.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -30,10 +34,12 @@ public class Controller {
     public void init(View view) {
         this.view = view;
 
+        if (!isPackageExists()) {
+            makePackage();
+        }
         boolean isFirstLoad = !isDatabaseExists();
         databaseManager = new DatabaseManager();
         if (isFirstLoad) {
-
             try {
                 databaseManager.firstLoad();
                 view.warningMessage("\t\t\t\t\t\t\t\t\t\t Внимание!\nДля улучшения качества обслуживания \nотслеживается продолжительность запущенной программы");
@@ -44,6 +50,20 @@ public class Controller {
                         "Свяжитесь с разработчиком \n" + e);
             }
         }
+
+    }
+
+    private void makePackage() {
+        String path = String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase"));
+        boolean result = new File(path).mkdir();
+        if (result) {
+            System.out.println("Package has been created \n" +
+                    "path:" + path);
+        }
+    }
+
+    public boolean isPackageExists() {
+        return new File(String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase"))).isDirectory();
     }
 
     public boolean isDatabaseExists() {
@@ -100,26 +120,71 @@ public class Controller {
         }
     }
 
+    //! bad practice!!
+    private static final TrustManager[] trustAllCerts = new TrustManager[]{
+            new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                    //document is not need now
+                }
+                @Override
+                public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+                    //document is not need now
+                }
+                @Override
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return new java.security.cert.X509Certificate[]{};
+                }
+            }
+    };
+
+    private static final SSLContext trustAllSslContext;
+    static {
+        try {
+            trustAllSslContext = SSLContext.getInstance("SSL");
+            trustAllSslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    //! bad practice!!
+    private static final SSLSocketFactory trustAllSslSocketFactory = trustAllSslContext.getSocketFactory();
+
+    //! bad practice!!
+    public static OkHttpClient trustAllSslClient(OkHttpClient client) {
+        //Using the trustAllSslClient is highly discouraged and should not be used in Production!
+        OkHttpClient.Builder builder = client.newBuilder();
+        builder.sslSocketFactory(trustAllSslSocketFactory, (X509TrustManager) trustAllCerts[0]);
+        builder.hostnameVerifier((hostname, session) -> true);
+        return builder.build();
+    }
+
     public boolean serverIsOnline(String url) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .retryOnConnectionFailure(false)
                 .connectTimeout(5, TimeUnit.SECONDS)
                 .build();
 
+        OkHttpClient trustClient = trustAllSslClient(client);
+
         Request request = new Request.Builder()
                 .url(url)
                 .build();
 
         try {
-            Response response = client.newCall(request).execute();
+            Response response = trustClient.newCall(request).execute();
+            System.out.println("Сервер доступен.");
             return response.isSuccessful();
         } catch (IOException e) {
+            System.out.println("Сервер не доступен.");
             return false;
         }
     }
 
     String post(String url, String json) throws IOException, StatisticException {
         OkHttpClient client = new OkHttpClient();
+        OkHttpClient trustClient = trustAllSslClient(client);
         final MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
 
         RequestBody body = RequestBody.create(json, mediaType); // new
@@ -127,7 +192,7 @@ public class Controller {
                 .url(url)
                 .post(body)
                 .build();
-        Response response = client.newCall(request).execute();
+        Response response = trustClient.newCall(request).execute();
         ResponseBody responseBody = response.body();
 
         if (responseBody == null) {
