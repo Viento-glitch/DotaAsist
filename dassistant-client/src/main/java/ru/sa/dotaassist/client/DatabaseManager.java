@@ -16,6 +16,9 @@ public class DatabaseManager {
     public static final String FILE_PATH = String.valueOf(Paths.get(System.getProperty("user.home")).resolve("LocalDatabase").resolve("logs.db"));
 
     public static final String USER_INFO_TABLE_NAME = "user_info";
+    public static final String USER_INFO_COLUMN = "uniqueID";
+
+
     public static final String USER_UPDATE_LOG_TABLE_NAME = "user_update_log";
     public static final String USER_CHECKBOX_TABLE_NAME = "update_checkbox";
 
@@ -27,7 +30,7 @@ public class DatabaseManager {
     public static final String USER_LOG_COLUMN_START = "start_date";
     public static final String USER_LOG_COLUMN_END = "end_date";
 
-    private String uuid;
+    private String uniqueID;
 
     final HikariDataSource dataSource;
 
@@ -50,7 +53,7 @@ public class DatabaseManager {
     }
 
     public void firstLoad() throws FirstLoadException {
-        UUID uuid = generateUUID();
+        String uniqueID = ComputerIdentifier.generateLicenseKey();
         try {
             System.out.println("stage:1\n" +
                     "makeDatabase.");
@@ -58,13 +61,13 @@ public class DatabaseManager {
             System.out.println("""
                     Database has been created;
                     stage:2
-                    make uuid container.""");
-            makeSchemaUuidContainer();
+                    make uniqueID container.""");
+            makeSchemaIdContainer();
             System.out.println("""
                     Container has been created;
                     stage:3
                     init user.""");
-            initUser(uuid);
+            initUser(uniqueID);
             System.out.println("""
                     User has been initiated;
                     stage:4
@@ -93,7 +96,7 @@ public class DatabaseManager {
             makeLogSchema();
             System.out.println("Log schema has been created.");
         } catch (SQLException | DbException e) {
-            throw new FirstLoadException("Can't init database for uuid: " + uuid, e);
+            throw new FirstLoadException("Can't init database for uniqueID: " + uniqueID, e);
         }
     }
 
@@ -185,33 +188,27 @@ public class DatabaseManager {
     /**
      * Проверяет наличие таблицы user_id
      */
-    public String getUuid() throws SQLException {
-        if (uuid == null) {
-            final String query = "SELECT * FROM " + USER_INFO_TABLE_NAME;
+    public String getUniqueID() throws SQLException {
+        if (uniqueID == null) {
+            final String query = "SELECT " + USER_INFO_COLUMN + " FROM " + USER_INFO_TABLE_NAME;
             try (
                     Connection connection = dataSource.getConnection();
-                    Statement statement = connection.createStatement()
+                    PreparedStatement preparedStatement = connection.prepareStatement(query);
             ) {
-                ResultSet result = statement.executeQuery(query);
+                ResultSet result = preparedStatement.executeQuery();
                 if (result.next()) {
-                    uuid = result.getString("uuid");
-                    System.out.println("UUID tacked from table : " + USER_INFO_TABLE_NAME);
-                    System.out.println("UUID is :" + uuid);
-                    return uuid;
+                    uniqueID = result.getString(USER_INFO_COLUMN);
+                    System.out.println(USER_INFO_COLUMN+" tacked from table : " + USER_INFO_TABLE_NAME);
+                    System.out.println(USER_INFO_COLUMN+" is :" + uniqueID);
+                    return uniqueID;
                 } else {
                     return null;
                 }
             }
         } else {
-            return uuid;
+            return uniqueID;
         }
     }
-
-    private UUID generateUUID() {
-        System.out.println("UUID generated.");
-        return UUID.randomUUID();
-    }
-
     private String getConnectionUrl() {
         return "jdbc:sqlite:\\" + FILE_PATH;
     }
@@ -227,18 +224,18 @@ public class DatabaseManager {
         }
     }
 
-    private void initUser(UUID uuid) throws DbException {
-        final String query = "INSERT INTO " + USER_INFO_TABLE_NAME + "(uuid) " +
+    private void initUser(String uniqueID) throws DbException {
+        final String query = "INSERT INTO " + USER_INFO_TABLE_NAME + "(" + USER_INFO_COLUMN + ") " +
                 "VALUES( ? );";
         System.out.println(query);
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, String.valueOf(uuid));
+            statement.setString(1, uniqueID);
             statement.executeUpdate();
             System.out.println("Initialization user is correct.");
-            System.out.println("UUID of user : " + uuid);
+            System.out.println("UUID of user : " + uniqueID);
         } catch (SQLException e) {
-            throw new DbException("Can'n init user with this uuid:\n" + uuid, e);
+            throw new DbException("Can'n init user with this uniqueID:\n" + uniqueID, e);
         }
     }
 
@@ -257,9 +254,9 @@ public class DatabaseManager {
         }
     }
 
-    private void makeSchemaUuidContainer() throws SQLException {
+    private void makeSchemaIdContainer() throws SQLException {
         final String query = "CREATE TABLE " + USER_INFO_TABLE_NAME + " (\n" +
-                "uuid VARCHAR(36));";
+                USER_INFO_COLUMN + " VARCHAR(150));";
         try (
                 Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()

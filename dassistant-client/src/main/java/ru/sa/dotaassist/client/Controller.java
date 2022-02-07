@@ -103,18 +103,18 @@ public class Controller {
             databaseManager.dataSource.getConnection();
             List<Integer> undeliveredIDList = databaseManager.getListOfUndeliveredID();
 
-            String uuid = databaseManager.getUuid();
+            String uniqueID = databaseManager.getUniqueID();
             List<Session> sessionList = new ArrayList<>();
             ContainerJson containerJson = null;
             for (int undeliveredID : undeliveredIDList) {
                 String startDate = databaseManager.getDateLoge(DatabaseManager.USER_LOG_COLUMN_START, undeliveredID);
                 String endDate = databaseManager.getDateLoge(DatabaseManager.USER_LOG_COLUMN_END, undeliveredID);
                 sessionList.add(new Session(startDate, endDate));
-                containerJson = new ContainerJson(uuid, sessionList);
+                containerJson = new ContainerJson(uniqueID, sessionList);
             }
             return containerJson;
         } catch (Exception e) {
-            view.warningMessage("Неудалось поллучить JsonLoge,\n" +
+            view.warningMessage("Неудалось поллучить JsonLog,\n" +
                     "Свяжитесь с разработчиком");
             return null;
         }
