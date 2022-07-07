@@ -10,27 +10,46 @@ import java.awt.event.*;
 import java.util.Date;
 
 class View extends JFrame {
+
     static final String VERSION = "1.0-SNAPSHOT";
 
-    boolean autoUpdateBoolean;
+    static boolean autoUpdateBoolean;
+    static boolean smilesBoolean;
+    Controller controller;
+
+    public View (Controller controller){
+        super("DAssistant " + VERSION);
+        this.controller = controller;
+    }
+
 
     JButton buttonInstruction = new JButton("Инструкция");
     JButton buttonActivate = new JButton("Включить");
     JButton buttonDeactivate = new JButton("Выключить");
     JButton buttonBugReport = new JButton("Баг репорт");
     JCheckBox autoUpdateCheckBox = new JCheckBox("Авто обновление", null, autoUpdateBoolean);
+    JCheckBox useSmilesCheckBox = new JCheckBox("Использовать смайлы", null, isSmilesActive());
+
+    public static boolean isSmilesActive() {
+        return smilesBoolean;
+    }
+
+    public static void setSmilesBoolean(boolean smilesBoolean) {
+        View.smilesBoolean = smilesBoolean;
+    }
+
+    public void setUseSmilesCheckBox(boolean value){
+        smilesBoolean = value;
+    }
 
     public void setCheckBoxStartValue(boolean value) {
         this.autoUpdateCheckBox.setSelected(value);
     }
 
-    public View() {
-        super("DAssistant " + VERSION);
-    }
 
-    public void init(Controller controller) {
+    public void init() {
         Date startDate = new Date();
-
+//        smilesBoolean = controller.
         setBounds(900, 450, 330, 115);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -134,14 +153,13 @@ class View extends JFrame {
                 Date endDate = new Date();
                 controller.saveDuration(startDate, endDate);
 
-
                 exitProcedure();
             }
         });
 
 
         Container container = this.getContentPane();
-        container.setLayout(new GridLayout(3, 1, 1, 1));
+        container.setLayout(new GridLayout(4, 1, 1, 1));
 //        container.setLayout(new GridLayout(3, 1, 1, 2));
         buttonActivate.addActionListener(new ActivateButtonEventListener());
 
@@ -149,7 +167,11 @@ class View extends JFrame {
         buttonInstruction.addActionListener(new ButtonEventListenerInstruction());
         buttonBugReport.addActionListener(new ButtonEventListenerBugReport());
         autoUpdateCheckBox.addActionListener(new CheckboxAction());
+        useSmilesCheckBox.addActionListener(new SmileCheckboxAction());
 
+        useSmilesCheckBox.setSelected(isSmilesActive());
+        
+        container.add(useSmilesCheckBox);
         container.add(buttonInstruction);
 //        container.add(buttonBugReport);
         container.add(buttonActivate);
@@ -159,6 +181,39 @@ class View extends JFrame {
 
     public void warningMessage(String message) {
         JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE, null);
+    }
+
+    static class SmileCheckboxAction extends AbstractAction {
+        public SmileCheckboxAction() {
+            super();
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent actionEvent) {
+            JCheckBox cbLog = (JCheckBox) actionEvent.getSource();
+            DatabaseManager databaseManager = new DatabaseManager();
+            if (cbLog.isSelected()) {
+                try {
+                    databaseManager.setSmilesBoolean(true);
+                    smilesBoolean = true;
+                    System.out.println(databaseManager.isSmilesEnabled());
+                    System.out.println("Smiles is activated");
+                } catch (DbException e) {
+                    e.printStackTrace();
+                    //todo
+                }
+            } else {
+                try {
+                    databaseManager.setSmilesBoolean(false);
+                    smilesBoolean = false;
+                    System.out.println(databaseManager.isSmilesEnabled());
+                    System.out.println("Smiles is deactivated");
+                } catch (DbException e) {
+                    e.printStackTrace();
+                    //todo
+                }
+            }
+        }
     }
 
     static class CheckboxAction extends AbstractAction {

@@ -41,14 +41,18 @@ public class Controller {
         databaseManager = new DatabaseManager();
         if (isFirstLoad) {
             try {
-                databaseManager.firstLoad();
                 view.warningMessage("\t\t\t\t\t\t\t\t\t\t Внимание!\nДля улучшения качества обслуживания \nотслеживается продолжительность запущенной программы");
-                boolean autoUpdateEnabled = databaseManager.isAutoUpdateEnabled();
-                view.setCheckBoxStartValue(autoUpdateEnabled);
-            } catch (FirstLoadException | DbException e) {
+                databaseManager.firstLoad();
+            } catch (FirstLoadException e) {
                 view.warningMessage("Ошибка инициализации БД! \n" +
                         "Свяжитесь с разработчиком \n" + e);
             }
+        }
+        try {
+            view.setCheckBoxStartValue(databaseManager.isAutoUpdateEnabled());
+            view.setUseSmilesCheckBox(databaseManager.isSmilesEnabled());
+        } catch (DbException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -92,7 +96,7 @@ public class Controller {
                 }
             }
         } catch (DbException | SQLException e) {
-            view.warningMessage("Ошибка сохранения лога\n" +
+            view.warningMessage("Ошибка в удостоверении доставки лога\n" +
                     "Свяжитесь с разработчиком \n" + e);
         }
         return result;
@@ -127,10 +131,12 @@ public class Controller {
                 public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
                     //document is not need now
                 }
+
                 @Override
                 public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
                     //document is not need now
                 }
+
                 @Override
                 public java.security.cert.X509Certificate[] getAcceptedIssuers() {
                     return new java.security.cert.X509Certificate[]{};
@@ -139,6 +145,7 @@ public class Controller {
     };
 
     private static final SSLContext trustAllSslContext;
+
     static {
         try {
             trustAllSslContext = SSLContext.getInstance("SSL");
@@ -217,6 +224,7 @@ public class Controller {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(containerJson);
             String json = gson.toJson(containerJson);
+            System.out.println(json);
             result = post(url + Runner.SEND_LOG, json);
             System.out.println("result post " + result);
             return result;

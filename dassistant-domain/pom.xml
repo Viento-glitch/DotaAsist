@@ -10,10 +10,9 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>ru.sa.dassistant</groupId>
     <artifactId>dassistant-domain</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>

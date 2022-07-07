@@ -1,7 +1,6 @@
 package ru.sa.dotaassist.client;
 
 public class Runner {
-    public static final boolean ISDEVELOPING = true;
     public static final String LAST_VERSION = "/lastversion";
     public static final String SEND_LOG = "/sendLoge";
     public static final String URL = "https://localhost:3301";
@@ -9,14 +8,14 @@ public class Runner {
     public static void main(String[] args) {
         /* ?баг репорт добавлять в отдельную колонку базы данных. */
         Controller controller = new Controller();
-        View view = new View();
+        View view = new View(controller);
         /*
         something
         123123
         123123
          */
         controller.init(view);
-        view.init(controller);
+        view.init();
 
         if (controller.logeListIsDelivered()) {
             if (controller.serverIsOnline(URL + LAST_VERSION)) {

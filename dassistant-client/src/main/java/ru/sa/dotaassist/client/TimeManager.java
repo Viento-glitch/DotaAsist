@@ -6,16 +6,11 @@ import java.awt.datatransfer.StringSelection;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class Timer {
-
-    public static void main(String[] args) {
-        generateRoshanTiming("1543");
-    }
-
+public class TimeManager {
     public static void generateRoshanTiming(String startNumber) {
         String seconds = makeSeconds(startNumber);
         int minutes = makeMinutes(startNumber);
-        String result = makeResult(minutes, seconds, startNumber);
+        String result = makeResult(minutes, seconds);
         copy(result);
     }
 
@@ -36,19 +31,18 @@ public class Timer {
         return aegis.get(c);
     }
 
-    private static String makeResult(int minutes, String seconds, String startNumber) {
+    private static String makeResult(int minutes, String seconds) {
         int aeg = minutes + 5;
         int minRoshan = minutes + 8;
         int maxRoshan = minutes + 11;
-        return getTextedTime(minutes, seconds, startNumber, aeg, minRoshan, maxRoshan);
+        return getTextedTime(minutes, seconds,  aeg, minRoshan, maxRoshan);
     }
 
-    private static String getTextedTime(int minutes, String seconds, String startNumber, int aeg, int minRoshan, int maxRoshan) {
-        if (Runner.ISDEVELOPING) {
-            //     ? с смайликами
+    private static String getTextedTime(int minutes, String seconds,  int aeg, int minRoshan, int maxRoshan) {
+        if (View.smilesBoolean) {
             return ":grave:" + minutes + ":" + seconds + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
         } else {
-            return "" + startNumber + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+            return "" + minutes + ":" + seconds + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
         }
     }
 

@@ -18,11 +18,16 @@ public class DatabaseManager {
     public static final String USER_INFO_TABLE_NAME = "user_info";
     public static final String USER_INFO_COLUMN = "uniqueID";
 
+    // таблица настроек
+    public static final String USER_SETTINGS_TABLE_NAME = "user_settings_table";
+    public static final String USER_SETTINGS_COLUMN_1 = "id";
+    public static final String USER_SETTINGS_COLUMN_2 = "setting_name";
+    public static final String USER_SETTINGS_COLUMN_3 = "setting_value";
+    //список настроек
+    public static final String USER_SETTING_SMILES = "smiles_boolean";
+    public static final String USER_SETTING_AUTOUPDATE = "update_boolean";
 
     public static final String USER_UPDATE_LOG_TABLE_NAME = "user_update_log";
-    public static final String USER_CHECKBOX_TABLE_NAME = "update_checkbox";
-
-    public static final String COLUMN_UPDATE_NAME = "update_boolean";
 
     public static final String USER_LOG_TABLE_NAME = "date_log";
     public static final String USER_LOG_TABLE_ID = "id";
@@ -53,7 +58,7 @@ public class DatabaseManager {
     }
 
     public void firstLoad() throws FirstLoadException {
-        String uniqueID = ComputerIdentifier.generateLicenseKey();
+        String uniqueID = String.valueOf(UUID.randomUUID());
         try {
             System.out.println("stage:1\n" +
                     "makeDatabase.");
@@ -81,14 +86,16 @@ public class DatabaseManager {
             System.out.println("""
                     fake last Version has been initiated;
                     stage:6
-                    make AutoUpdate table.""");
-            makeAutoUpdateSchema();
+                    make Settings table.""");
+            makeSettingsSchema();
             System.out.println("""
                     AutoUpdate table has been created;
                     stage:7
-                    init boolean.""");
-            makeAutoUpdateBoolean();
+                    init Default settings .""");
+            makeDefaultSettings();
+
             setAutoUpdateBoolean(true);
+
             System.out.println("""
                     AutoUpdate boolean  has been initiated;
                     stage:8
@@ -100,9 +107,27 @@ public class DatabaseManager {
         }
     }
 
-    private void makeAutoUpdateBoolean() throws SQLException {
-        final String query = "INSERT INTO " + USER_CHECKBOX_TABLE_NAME + "(" + COLUMN_UPDATE_NAME + ") \n " +
-                "VALUES('0');";
+    private void makeSettingsSchema() throws SQLException {
+        final String query = "CREATE TABLE " + USER_SETTINGS_TABLE_NAME + " (\n" +
+                USER_SETTINGS_COLUMN_1 + " INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
+                USER_SETTINGS_COLUMN_2 + " VARCHAR(50), \n" +
+                USER_SETTINGS_COLUMN_3 + " INTEGER(1) DEFAULT 0);";
+        try (Connection connection = dataSource.getConnection();
+             Statement statement = connection.createStatement()
+        ) {
+            statement.executeUpdate(query);
+        }
+    }
+
+    private void makeDefaultSettings() throws SQLException {
+        insertIntoSettings(USER_SETTING_SMILES, false);
+        insertIntoSettings(USER_SETTING_AUTOUPDATE, true);
+    }
+
+    private void insertIntoSettings(String settingName, Boolean bool) throws SQLException {
+        int value = bool ? 1 : 0;
+        final String query = "INSERT INTO " + USER_SETTINGS_TABLE_NAME + "('" + USER_SETTINGS_COLUMN_2 + "','" + USER_SETTINGS_COLUMN_3 + "' )" +
+                " VALUES('" + settingName + "','" + value + "');";
         try (
                 Connection connection = dataSource.getConnection();
                 Statement statement = connection.createStatement()
@@ -112,19 +137,14 @@ public class DatabaseManager {
         System.out.println("Insert executed.");
     }
 
-    private void makeAutoUpdateSchema() throws SQLException {
-        final String query = "CREATE TABLE " + USER_CHECKBOX_TABLE_NAME + " (\n" +
-                COLUMN_UPDATE_NAME + " INTEGER(1));";
-        try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement()
-        ) {
-            statement.executeUpdate(query);
-        }
-    }
+    /*
+    обновить таблицу устанавив значение value(3 колонка) где
+    название функции(2 колонка) равно updateBool
+    */
 
     public void setAutoUpdateBoolean(boolean b) throws DbException {
-        final String query = "UPDATE " + USER_CHECKBOX_TABLE_NAME + " SET " + COLUMN_UPDATE_NAME + " = ?;";
-
+        final String query = "UPDATE " + USER_SETTINGS_TABLE_NAME + " SET " + USER_SETTINGS_COLUMN_3 + " = ?" +
+                " WHERE " + USER_SETTINGS_COLUMN_2 + " =('" + USER_SETTING_AUTOUPDATE + "');";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setBoolean(1, b);
@@ -133,27 +153,18 @@ public class DatabaseManager {
             throw new DbException("Update boolean has not been updated.", e);
         }
     }
-
-    public boolean isAutoUpdateEnabled() throws DbException {
-        String query = "SELECT * FROM " + USER_CHECKBOX_TABLE_NAME;
-        try (
-                Connection connection = dataSource.getConnection();
-                Statement statement = connection.createStatement()
-        ) {
-            ResultSet resultSet = statement.executeQuery(query);
-            if (resultSet.next()) {
-                return resultSet.getBoolean(COLUMN_UPDATE_NAME);
-            } else {
-                throw new Exception("Not found boolean from column: " + COLUMN_UPDATE_NAME);
-            }
-        } catch (Exception e) {
-            throw new DbException("Can't read boolean from column: " + COLUMN_UPDATE_NAME, e);
+    public void setSmilesBoolean(boolean b) throws DbException {
+        final String query = "UPDATE " + USER_SETTINGS_TABLE_NAME + " SET " + USER_SETTINGS_COLUMN_3 + " = ?" +
+                " WHERE " + USER_SETTINGS_COLUMN_2 + " =('" + USER_SETTING_SMILES + "');";
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setBoolean(1, b);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            throw new DbException("Smiles boolean has not been updated.", e);
         }
     }
 
-    public boolean isLastVersion(String lastVersionOnDatabase) {
-        return View.VERSION.equals(lastVersionOnDatabase);
-    }
 
     public String getLastVersionInDataBase() throws SQLException {
         final String query = "SELECT * " +
@@ -171,6 +182,45 @@ public class DatabaseManager {
             }
         }
         return null;
+    }
+
+
+    public boolean isAutoUpdateEnabled() throws DbException {
+        final String query = "SELECT " + USER_SETTINGS_COLUMN_3 + " FROM " + USER_SETTINGS_TABLE_NAME + " WHERE " + USER_SETTINGS_COLUMN_2 + " =('" + USER_SETTING_AUTOUPDATE + "');";
+        try (
+                Connection connection = dataSource.getConnection();
+                Statement statement = connection.createStatement()
+        ) {
+            ResultSet resultSet = statement.executeQuery(query);
+            if (resultSet.next()) {
+                return resultSet.getBoolean(USER_SETTINGS_COLUMN_3);
+            } else {
+                throw new Exception("Not found boolean from column: " + USER_SETTINGS_COLUMN_3);
+            }
+        } catch (Exception e) {
+            throw new DbException("Can't read boolean from column: " + USER_SETTINGS_COLUMN_3, e);
+        }
+    }
+
+    public boolean isSmilesEnabled() throws DbException {
+        final String query = "SELECT " + USER_SETTINGS_COLUMN_3 + " FROM " + USER_SETTINGS_TABLE_NAME + " WHERE " + USER_SETTINGS_COLUMN_2 + " =('" + USER_SETTING_SMILES + "');";
+        try (
+                Connection connection = dataSource.getConnection();
+                Statement statement = connection.createStatement()
+        ) {
+            ResultSet resultSet = statement.executeQuery(query);
+            if (resultSet.next()) {
+                return resultSet.getBoolean(USER_SETTINGS_COLUMN_3);
+            } else {
+                throw new Exception("Not found boolean from column: " + USER_SETTINGS_COLUMN_3);
+            }
+        } catch (Exception e) {
+            throw new DbException("Can't read boolean from column: " + USER_SETTINGS_COLUMN_3, e);
+        }
+    }
+
+    public boolean isLastVersion(String lastVersionOnDatabase) {
+        return View.VERSION.equals(lastVersionOnDatabase);
     }
 
     private void initFakeLastVersion() throws SQLException {
@@ -198,8 +248,8 @@ public class DatabaseManager {
                 ResultSet result = preparedStatement.executeQuery();
                 if (result.next()) {
                     uniqueID = result.getString(USER_INFO_COLUMN);
-                    System.out.println(USER_INFO_COLUMN+" tacked from table : " + USER_INFO_TABLE_NAME);
-                    System.out.println(USER_INFO_COLUMN+" is :" + uniqueID);
+                    System.out.println(USER_INFO_COLUMN + " tacked from table : " + USER_INFO_TABLE_NAME);
+                    System.out.println(USER_INFO_COLUMN + " is :" + uniqueID);
                     return uniqueID;
                 } else {
                     return null;
@@ -209,6 +259,7 @@ public class DatabaseManager {
             return uniqueID;
         }
     }
+
     private String getConnectionUrl() {
         return "jdbc:sqlite:\\" + FILE_PATH;
     }

@@ -57,10 +57,10 @@ public class Assistant implements NativeKeyListener {
                     final int timingAegis = 500;
                     int finedTime = timingAegis + Integer.parseInt(takeAegTime(text));
                     String result = String.valueOf(takeTime(text) - finedTime);
-                    Timer.generateRoshanTiming(result);
+                    TimeManager.generateRoshanTiming(result);
                 } else {
                     if (isNumeric(text)) {
-                        Timer.generateRoshanTiming(text);
+                        TimeManager.generateRoshanTiming(text);
                     }
                 }
                 isCtrlPressed = false;
