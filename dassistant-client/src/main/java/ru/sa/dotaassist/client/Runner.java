@@ -10,7 +10,11 @@ public class Runner {
         /* ?баг репорт добавлять в отдельную колонку базы данных. */
         Controller controller = new Controller();
         View view = new View();
-
+        /*
+        something
+        123123
+        123123
+         */
         controller.init(view);
         view.init(controller);
 
