@@ -1,8 +1,8 @@
-# DotaAsist
+# DotaAssist
 This program help players in game DOTA 2,
 now available only on rus language,
 
-But fuctions so easy to undestend in any languages.
+But functions so easy to understand in any languages.
 Now with this program we can easy saver timing of "Roshan","Aegis".
 !!!WARNING!!!
 Program takes information of ur'e UUID on hardware and stats of computer.
@@ -18,5 +18,5 @@ Next step, you press combination "Ctrl+A" and "Ctrl+C".
   Ctrl+C will copy in clipboard;
 
 If copied text is numeric:
-  pogram transformate text and set in clipboard result.
+  program transforming text and set in clipboard result.
   result like:3301 (A)38:01  (R)41:01-44:01.
