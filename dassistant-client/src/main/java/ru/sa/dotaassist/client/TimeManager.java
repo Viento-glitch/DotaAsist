@@ -7,11 +7,13 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class TimeManager {
-    public static void generateRoshanTiming(String startNumber) {
+    public static void generateRoshanTiming(String startNumber, boolean isTest) {
         String seconds = makeSeconds(startNumber);
         int minutes = makeMinutes(startNumber);
         String result = makeResult(minutes, seconds);
-        copy(result);
+        if (!isTest) copy(result); else  {
+            System.out.println(result);
+        }
     }
 
     private static void copy(String copiedString) {

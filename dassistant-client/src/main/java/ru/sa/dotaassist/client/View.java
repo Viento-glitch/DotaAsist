@@ -49,8 +49,14 @@ class View extends JFrame {
 
     public void init() {
         Date startDate = new Date();
+        Toolkit tk = Toolkit.getDefaultToolkit();
+        int width = 330;
+        int height = 115;
+        int xPos = (tk.getScreenSize().width-width)/2;
+        int yPos = (tk.getScreenSize().height-height)/2;
+
 //        smilesBoolean = controller.
-        setBounds(900, 450, 330, 115);
+        setBounds(xPos, yPos, width, height);
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
             @Override
@@ -278,9 +284,9 @@ class View extends JFrame {
                                    2.3.3. Записать Зафиксированное время в виде одной цифры (см выше п. 2.2.1)  \s
                                2.4 Выполнить пункт 1.4 , 1.4.1 , 1.4.2
                               \s
-                              \s
+                              \s 
                             Получение результата
-                               1. Зижмите клавишу "Ctrl"
+                               1. Зажмите клавишу "Ctrl"
                                    1.1. нажмите клавишу "V"
                             В качестве результата вы получите строку такого формата.
                             3301 (A)38:01  (R)41:01-44:01
