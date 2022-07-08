@@ -50,43 +50,59 @@ public class Assistant implements NativeKeyListener {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            process(getText(), false);
-
-        }
-    }
-
-    public String process(String text, boolean isTest) {
-        String out = null;
-        if (!text.isEmpty()) {
-            if (text.charAt(0) == '-') {
-                final int timingAegis = 500;
-                int finedTime = timingAegis + Integer.parseInt(takeAegTime(text));
-                String result = String.valueOf(takeTime(text) - finedTime);
-                out = TimeManager.generateRoshanTiming(result, isTest);
-            } else {
-                if (isNumeric(text)) {
-                    out = TimeManager.generateRoshanTiming(text, isTest);
-                }
+            String text = getText();
+            if (!text.isEmpty()) {
+                process(text, false);
             }
+
             isCtrlPressed = false;
             isAllSelected = false;
             isAllCopied = false;
         }
-        return out;
     }
 
-    private int takeTime(String text) {
+    public void process(String text, boolean isTest) {
+        if (text.charAt(0) == '-') {
+            int spentTime = +Integer.parseInt(takeAegTime(text));
+            TimeManager.generateRoshanTiming(
+                    takeTime(text, spentTime),
+                    isTest);
+
+        } else {
+            if (isNumeric(text)) {
+                TimeManager.generateRoshanTiming(text, isTest);
+            }
+        }
+    }
+
+    private String takeTime(String text, int spentTime) {
         int i = 0;
         while (text.charAt(i) != ' ') {
             i++;
         }
+        while (text.charAt(i) == ' ') {
+            i++;
+        }
 
         StringBuilder time = new StringBuilder();
-        for (int j = i + 1; j < text.length(); j++) {
+        for (int j = i; j < text.length(); j++) {
             time.append(text.charAt(j));
         }
-        return Integer.parseInt(time.toString());
+
+        int spentMinutes = spentTime / 60;
+        int spentSeconds = spentTime - spentMinutes * 60;
+
+        int originMinutes = TimeManager.makeMinutes(String.valueOf(time));
+        int originSeconds = TimeManager.makeSeconds(String.valueOf(time));
+
+        String minutes = String.valueOf(originMinutes - spentMinutes);
+        String seconds = String.valueOf(originSeconds - spentSeconds);
+
+        if (seconds.length() < 2) {
+            seconds += "0" + seconds;
+        }
+        return minutes + seconds;
+
     }
 
     private String takeAegTime(String text) {

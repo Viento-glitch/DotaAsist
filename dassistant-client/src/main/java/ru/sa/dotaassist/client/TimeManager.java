@@ -8,10 +8,13 @@ import java.util.Random;
 
 public class TimeManager {
     public static String generateRoshanTiming(String startNumber, boolean isTest) {
-        String seconds = makeSeconds(startNumber);
         int minutes = makeMinutes(startNumber);
-        String result = makeResult(minutes, seconds);
-        if (!isTest) copy(result); else  {
+
+        String result = makeResult(
+                minutes, String.valueOf(makeSeconds(startNumber)));
+
+        if (!isTest) copy(result);
+        else {
             System.out.println(result);
         }
         return result;
@@ -38,10 +41,10 @@ public class TimeManager {
         int aeg = minutes + 5;
         int minRoshan = minutes + 8;
         int maxRoshan = minutes + 11;
-        return getTextedTime(minutes, seconds,  aeg, minRoshan, maxRoshan);
+        return getTextedTime(minutes, seconds, aeg, minRoshan, maxRoshan);
     }
 
-    private static String getTextedTime(int minutes, String seconds,  int aeg, int minRoshan, int maxRoshan) {
+    private static String getTextedTime(int minutes, String seconds, int aeg, int minRoshan, int maxRoshan) {
         if (View.smilesBoolean) {
             return ":grave:" + minutes + ":" + seconds + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
         } else {
@@ -53,7 +56,7 @@ public class TimeManager {
         return minutes + ":" + seconds;
     }
 
-    private static int makeMinutes(String startNumber) {
+    public static int makeMinutes(String startNumber) {
         StringBuilder minutes = new StringBuilder();
         for (int i = 0; i < startNumber.length() - 2; i++) {
             minutes.append(startNumber.charAt(i));
@@ -61,12 +64,12 @@ public class TimeManager {
         return Integer.parseInt(minutes.toString());
     }
 
-    private static String makeSeconds(String startNumber) {
+    public static int makeSeconds(String startNumber) {
         char sec = startNumber.charAt(startNumber.length() - 2);
         char sec2 = startNumber.charAt(startNumber.length() - 1);
         String result = String.valueOf(sec);
         result += String.valueOf(sec2);
 
-        return result;
+        return Integer.parseInt(result);
     }
 }

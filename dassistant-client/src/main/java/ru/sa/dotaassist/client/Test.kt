@@ -9,6 +9,12 @@ class Test {
     private val assistant = Assistant()
 
     @Test
+    @DisplayName("test Aegis timer without smiles ")
+    fun test0() {
+        assertEquals("10:00 (A)15:00  (R)18:00-21:00", assistant.process("-500 1000", true))
+    }
+
+    @Test
     @DisplayName("Process two equal numbers")
     fun test1() {
         assertEquals("expected", assistant.process("-235 235", true))
