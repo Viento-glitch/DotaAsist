@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test
 
 class Test {
 
+    // Приватный финализированный экземпляр класса Assistant
     private val assistant = Assistant()
 
     @Test
