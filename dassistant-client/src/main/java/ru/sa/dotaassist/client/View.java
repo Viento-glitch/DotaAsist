@@ -13,6 +13,7 @@ class View extends JFrame {
 
     static final String VERSION = "1.0-SNAPSHOT";
 
+    static JFrame This;
     static boolean autoUpdateBoolean;
     static boolean smilesBoolean;
     Controller controller;
@@ -22,7 +23,7 @@ class View extends JFrame {
         this.controller = controller;
     }
 
-
+    JButton settings= new JButton("Настройки(пока не трогать)");
     JButton buttonInstruction = new JButton("Инструкция");
     JButton buttonActivate = new JButton("Включить");
     JButton buttonDeactivate = new JButton("Выключить");
@@ -48,10 +49,11 @@ class View extends JFrame {
 
 
     public void init() {
+        This = this;
         Date startDate = new Date();
         Toolkit tk = Toolkit.getDefaultToolkit();
-        int width = 330;
-        int height = 115;
+        int width = 340;
+        int height = 125;
         int xPos = (tk.getScreenSize().width-width)/2;
         int yPos = (tk.getScreenSize().height-height)/2;
 
@@ -165,7 +167,7 @@ class View extends JFrame {
 
 
         Container container = this.getContentPane();
-        container.setLayout(new GridLayout(4, 1, 1, 1));
+        container.setLayout(new GridLayout(5, 1, 1, 1));
 //        container.setLayout(new GridLayout(3, 1, 1, 2));
         buttonActivate.addActionListener(new ActivateButtonEventListener());
 
@@ -175,13 +177,23 @@ class View extends JFrame {
         autoUpdateCheckBox.addActionListener(new CheckboxAction());
         useSmilesCheckBox.addActionListener(new SmileCheckboxAction());
 
+        settings.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                new Settings(View.This);
+            }
+        });
+
         useSmilesCheckBox.setSelected(isSmilesActive());
         
         container.add(useSmilesCheckBox);
         container.add(buttonInstruction);
 //        container.add(buttonBugReport);
+        container.add(settings);
+
         container.add(buttonActivate);
         container.add(buttonDeactivate);
+
 //        container.add(autoUpdateCheckBox);
     }
 
