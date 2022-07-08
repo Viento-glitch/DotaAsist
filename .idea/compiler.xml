@@ -6,8 +6,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="dassistant-domain" />
         <module name="DAssistant" />
+        <module name="dassistant-client" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="dassistant-server" target="16" />
+    </bytecodeTargetLevel>
   </component>
 </project>

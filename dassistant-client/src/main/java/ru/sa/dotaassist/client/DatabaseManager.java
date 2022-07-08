@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import ru.sa.dotaassist.client.exceptions.DbException;
 import ru.sa.dotaassist.client.exceptions.FirstLoadException;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class DatabaseManager {
 
     private String uniqueID;
 
-    final HikariDataSource dataSource;
+    HikariDataSource dataSource = null;
 
     /*
      * Создаёт базу данных
@@ -52,9 +53,18 @@ public class DatabaseManager {
 
     public DatabaseManager() {
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl(getConnectionUrl());
 
-        dataSource = new HikariDataSource(config);
+        config.setJdbcUrl(getConnectionUrl());
+        try {
+            dataSource = new HikariDataSource(config);
+        } catch (Exception e) {
+            try {
+                config.setJdbcUrl("jdbc:sqlite:logs.db");
+                dataSource = new HikariDataSource(config);
+            } catch (Exception e1) {
+                System.exit(-1);
+            }
+        }
     }
 
     public void firstLoad() throws FirstLoadException {
@@ -243,7 +253,7 @@ public class DatabaseManager {
             final String query = "SELECT " + USER_INFO_COLUMN + " FROM " + USER_INFO_TABLE_NAME;
             try (
                     Connection connection = dataSource.getConnection();
-                    PreparedStatement preparedStatement = connection.prepareStatement(query);
+                    PreparedStatement preparedStatement = connection.prepareStatement(query)
             ) {
                 ResultSet result = preparedStatement.executeQuery();
                 if (result.next()) {
