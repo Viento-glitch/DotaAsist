@@ -8,11 +8,9 @@ import java.util.Random;
 
 public class TimeManager {
     public static String generateRoshanTiming(String startNumber, boolean isTest) {
+        String seconds = makeSeconds(startNumber);
         int minutes = makeMinutes(startNumber);
-
-        String result = makeResult(
-                minutes, String.valueOf(makeSeconds(startNumber)));
-
+        String result = makeResult(minutes, seconds);
         if (!isTest) copy(result);
         else {
             System.out.println(result);
@@ -61,15 +59,21 @@ public class TimeManager {
         for (int i = 0; i < startNumber.length() - 2; i++) {
             minutes.append(startNumber.charAt(i));
         }
-        return Integer.parseInt(minutes.toString());
+        int result = 0;
+        try {
+            result = Integer.parseInt(minutes.toString());
+        } catch (Exception e) {
+//            System.out.println(e);
+        }
+        return result;
     }
 
-    public static int makeSeconds(String startNumber) {
-        char sec = startNumber.charAt(startNumber.length() - 2);
+    public static String makeSeconds(String startNumber) {
+        char sec = '0';
+        if (startNumber.length() > 1) sec = startNumber.charAt(startNumber.length() - 2);
         char sec2 = startNumber.charAt(startNumber.length() - 1);
         String result = String.valueOf(sec);
         result += String.valueOf(sec2);
-
-        return Integer.parseInt(result);
+        return result;
     }
 }

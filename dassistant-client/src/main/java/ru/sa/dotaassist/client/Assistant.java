@@ -52,30 +52,44 @@ public class Assistant implements NativeKeyListener {
             }
             String text = getText();
             if (!text.isEmpty()) {
-                process(text, false);
-            }
 
-            isCtrlPressed = false;
-            isAllSelected = false;
-            isAllCopied = false;
+                try {
+                    process(text, false);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+
+                isCtrlPressed = false;
+                isAllSelected = false;
+                isAllCopied = false;
+            }
         }
     }
 
-    public void process(String text, boolean isTest) {
+    public String process(String text, boolean isTest) throws Exception {
         if (text.charAt(0) == '-') {
-            int spentTime = +Integer.parseInt(takeAegTime(text));
-            TimeManager.generateRoshanTiming(
-                    takeTime(text, spentTime),
-                    isTest);
-
+            int timeInSeconds = takeTime(text) - getSpentTime(takeAegTime(text));
+            int minutes = timeInSeconds / 60;
+            String seconds = String.valueOf(timeInSeconds - (minutes * 60));
+            if (seconds.length() < 2) {
+                seconds = 0 + seconds;
+            }
+            return TimeManager.generateRoshanTiming(minutes + "" + seconds, isTest);
         } else {
             if (isNumeric(text)) {
-                TimeManager.generateRoshanTiming(text, isTest);
+                return TimeManager.generateRoshanTiming(text, isTest);
             }
         }
+        throw new Exception("Incorrect input");
     }
 
-    private String takeTime(String text, int spentTime) {
+    private int getSpentTime(String aegTimer) {
+        int minutes = TimeManager.makeMinutes(aegTimer);
+        int seconds = Integer.parseInt(TimeManager.makeSeconds(aegTimer));
+        return 300 - (minutes * 60 + seconds);
+    }
+
+    private int takeTime(String text) {
         int i = 0;
         while (text.charAt(i) != ' ') {
             i++;
@@ -88,25 +102,14 @@ public class Assistant implements NativeKeyListener {
         for (int j = i; j < text.length(); j++) {
             time.append(text.charAt(j));
         }
+        int minutes = TimeManager.makeMinutes(String.valueOf(time));
+        int seconds = Integer.parseInt(TimeManager.makeSeconds(String.valueOf(time)));
 
-        int spentMinutes = spentTime / 60;
-        int spentSeconds = spentTime - spentMinutes * 60;
-
-        int originMinutes = TimeManager.makeMinutes(String.valueOf(time));
-        int originSeconds = TimeManager.makeSeconds(String.valueOf(time));
-
-        String minutes = String.valueOf(originMinutes - spentMinutes);
-        String seconds = String.valueOf(originSeconds - spentSeconds);
-
-        if (seconds.length() < 2) {
-            seconds += "0" + seconds;
-        }
-        return minutes + seconds;
-
+        return minutes * 60 + seconds;
     }
 
     private String takeAegTime(String text) {
-        int i = 0;
+        int i = 1;
         StringBuilder aegisTime = new StringBuilder();
         while (text.charAt(i) != ' ') {
             aegisTime.append(text.charAt(i));
