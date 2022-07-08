@@ -1,12 +1,12 @@
 package ru.sa.dotaassist.client
 
-import java.awt.Dimension
-import java.awt.GridLayout
-import java.awt.Point
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JFrame
+import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JScrollPane
 import javax.swing.ScrollPaneConstants
@@ -15,6 +15,10 @@ import javax.swing.ScrollPaneConstants
 class Settings(val parent: JFrame) : JFrame() {
     // Главная панель обернутая в объект ниже
     private val panel = JPanel()
+    // Панель с общими настройками
+    private val common = JPanel()
+    // Панель с настройка робота
+    private val robot = JPanel()
     // Отвечает за прокрутку
     private val scroll = JScrollPane(panel)
     // Статические обьекты
@@ -44,8 +48,30 @@ class Settings(val parent: JFrame) : JFrame() {
             // Задается политика прокрутки
             horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
             verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+        }
+        panel.apply {
             // Установка лэйоута, значения на текущий момент временные
-            layout = GridLayout(24, 1, 20, 15)
+            layout = GridLayout(8, 1, 20, 15)
+            add(common)
+            add(robot)
+            background = Color.LIGHT_GRAY
+        }
+        common.apply {
+            layout = GridLayout(4, 1, 5, 5)
+            add(JLabel("Общие"))
+            add(JCheckBox("обновляться автоматически"))
+            add(JCheckBox("показывать окна с предупреждениями"))
+            add(JCheckBox("отправлять статистику использования"))
+        }
+        robot.apply {
+            layout = GridLayout(4, 2, 5, 5)
+            add(JLabel("Робот"))
+            add(JLabel())
+            add(JCheckBox("автоматически отправлять сообщение"))
+            add(JLabel())
+            add(JButton("Калибровка захвата таймера"))
+            add(JLabel())
+            add(JButton("Бинд робота none"))
         }
         // Всегда поверх других окон
         isAlwaysOnTop = true
