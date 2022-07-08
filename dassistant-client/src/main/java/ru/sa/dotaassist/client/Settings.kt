@@ -1,6 +1,7 @@
 package ru.sa.dotaassist.client
 
 import java.awt.Dimension
+import java.awt.GridLayout
 import java.awt.Point
 import java.awt.Toolkit
 import java.awt.event.WindowAdapter
@@ -28,10 +29,12 @@ class Settings(val parent: JFrame) : JFrame() {
         isVisible = true
         addWindowListener(WindowSettingsListener(this))
         add(scroll)
-        scroll.horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-        scroll.verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+        scroll.apply {
+            horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+            verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
+            layout = GridLayout(24, 1, 20, 15)
+        }
         isAlwaysOnTop = true
-
     }
 
     class WindowSettingsListener(val ST: Settings) : WindowAdapter() {
@@ -40,15 +43,11 @@ class Settings(val parent: JFrame) : JFrame() {
             ST.parent.isVisible = false
         }
 
-        override fun windowClosed(e: WindowEvent?) {
+        override fun windowClosing(e: WindowEvent?) {
             super.windowClosed(e)
             ST.parent.isVisible = true
         }
 
-        override fun windowLostFocus(e: WindowEvent?) {
-            super.windowLostFocus(e)
-            ST.isVisible = true
-        }
     }
 
 }
