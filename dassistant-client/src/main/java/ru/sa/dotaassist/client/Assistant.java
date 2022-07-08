@@ -56,22 +56,24 @@ public class Assistant implements NativeKeyListener {
         }
     }
 
-    public void process(String text, boolean isTest) {
+    public String process(String text, boolean isTest) {
+        String out = null;
         if (!text.isEmpty()) {
             if (text.charAt(0) == '-') {
                 final int timingAegis = 500;
                 int finedTime = timingAegis + Integer.parseInt(takeAegTime(text));
                 String result = String.valueOf(takeTime(text) - finedTime);
-                TimeManager.generateRoshanTiming(result, isTest);
+                out = TimeManager.generateRoshanTiming(result, isTest);
             } else {
                 if (isNumeric(text)) {
-                    TimeManager.generateRoshanTiming(text, isTest);
+                    out = TimeManager.generateRoshanTiming(text, isTest);
                 }
             }
             isCtrlPressed = false;
             isAllSelected = false;
             isAllCopied = false;
         }
+        return out;
     }
 
     private int takeTime(String text) {
