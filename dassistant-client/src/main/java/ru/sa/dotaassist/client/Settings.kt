@@ -15,6 +15,7 @@ import javax.swing.ScrollPaneConstants
 class Settings(val parent: JFrame) : JFrame() {
     // Главная панель обернутая в объект ниже
     private val panel = JPanel()
+    private val mainPanel = JPanel()
     // Панель с общими настройками
     private val common = JPanel()
     // Панель с настройка робота
@@ -43,7 +44,12 @@ class Settings(val parent: JFrame) : JFrame() {
         // Добавление слушателя окна
         addWindowListener(WindowSettingsListener(this))
         // Добавление панели вместе с прокруткой в окно
-        add(scroll)
+        //add(mainPanel)
+        //mainPanel.apply {
+            add(scroll)
+            //add(JButton("124234"))
+            //add(JButton("124234"))
+        //}
         scroll.apply {
             // Задается политика прокрутки
             horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
