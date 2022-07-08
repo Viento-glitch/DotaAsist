@@ -11,8 +11,5 @@
         <module name="dassistant-client" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="dassistant-server" target="16" />
-    </bytecodeTargetLevel>
   </component>
 </project>
