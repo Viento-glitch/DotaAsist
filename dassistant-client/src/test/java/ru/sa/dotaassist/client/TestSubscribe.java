@@ -14,6 +14,6 @@ public class TestSubscribe {
     @DisplayName("Test subscribing, boolean value")
     public void test1() {
         PropertyManager.Companion.subscribe(this);
-        assertEquals(false, autoUpdate);
+        assertEquals(true, autoUpdate);
     }
 }

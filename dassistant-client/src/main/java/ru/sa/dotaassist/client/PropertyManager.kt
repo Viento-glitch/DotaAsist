@@ -32,15 +32,15 @@ class PropertyManager {
             // Все строки внутри apply применяются к properties
             // Задавать новые настройки следует здесь в формате ключ - значение
             properties.apply {
-                put("auto-send", false)
-                put("auto-update", false)
-                put("show-warns", false)
-                put("send-statistic", false)
-                put("robot-xPos", 0)
-                put("robot-yPos", 0)
-                put("robot-width", 0)
-                put("robot-height", 0)
-                put("robot-hotkey", KeyEvent.VK_T.toChar())
+                put("auto-send", "false")
+                put("auto-update", "true")
+                put("show-warns", "true")
+                put("send-statistic", "true")
+                put("robot-xPos", "0")
+                put("robot-yPos", "0")
+                put("robot-width", "0")
+                put("robot-height", "0")
+                put("robot-hotkey", "KeyEvent.VK_T.toChar()")
             }
             return properties
         }
@@ -57,7 +57,8 @@ class PropertyManager {
             try {
                 properties.store(FileWriter(file), "")
             } catch (e: Exception) {
-                println("ERROR: cannot save $path")
+                println(e)
+                //println("ERROR: cannot save $path")
             }
         }
 
@@ -83,7 +84,7 @@ class PropertyManager {
                         properties.load(FileReader(file))
                     } else {
                         properties = standardSettings()
-                        file.mkdirs()
+                        //file.mkdirs()
                         properties.store(FileWriter(file), "")
                     }
                 }

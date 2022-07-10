@@ -65,15 +65,15 @@ class Settings(val parent: JFrame) : JFrame() {
         common.apply {
             layout = GridLayout(4, 1, 5, 5)
             add(JLabel("Общие"))
-            add(JCheckBox("обновляться автоматически"))
-            add(JCheckBox("показывать окна с предупреждениями"))
-            add(JCheckBox("отправлять статистику использования"))
+            add(SettingBox("auto-update", "обновляться автоматически"))
+            add(SettingBox("show-warns", "показывать окна с предупреждениями"))
+            add(SettingBox("send-statistic", "отправлять статистику использования"))
         }
         robot.apply {
             layout = GridLayout(4, 2, 5, 5)
             add(JLabel("Робот"))
             add(JLabel())
-            add(JCheckBox("автоматически отправлять сообщение"))
+            add(SettingBox("auto-send", "автоматически отправлять сообщение"))
             add(JLabel())
             add(JButton("Калибровка захвата таймера"))
             add(JLabel())
@@ -95,6 +95,7 @@ class Settings(val parent: JFrame) : JFrame() {
         //
         override fun windowClosing(e: WindowEvent?) {
             super.windowClosed(e)
+            PropertyManager.save()
             // Разблокировка родительского окна
             ST.parent.isVisible = true
         }
