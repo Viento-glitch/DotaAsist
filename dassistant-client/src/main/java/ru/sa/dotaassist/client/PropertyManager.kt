@@ -22,9 +22,7 @@ class PropertyManager {
     // Все статичный поля расположены здесь
     companion object {
         // Загружает настройки при старте приложения
-        init {
-            load()
-        }
+
         // Строка содержащая имя файла с настройками вместе с путем
         private val path = "settings.properties"
         // функция генерации стандартных настроек
@@ -151,6 +149,9 @@ class PropertyManager {
         fun reset() {
             properties = standardSettings()
             update()
+        }
+        init {
+            load()
         }
     }
 

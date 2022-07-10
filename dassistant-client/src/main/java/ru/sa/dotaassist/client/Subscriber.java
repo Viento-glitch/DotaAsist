@@ -2,7 +2,7 @@ package ru.sa.dotaassist.client;
 
 import java.lang.annotation.*;
 
-@Target(ElementType.LOCAL_VARIABLE)
+@Target({ElementType.FIELD, ElementType.LOCAL_VARIABLE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 /**
