@@ -15,8 +15,8 @@ public class TestImplementation {
         int текущееВремяВСекундах = toSeconds(temp[1]);
         int времяСмертиРошана = текущееВремяВСекундах-(300-аегисВСекундах);
 
-        logger.info("смерть рошана: "+" аегис: "
-                +"минимальный тайминг возрождения: "+"максимальный тайминг возрождения: ");
+        logger.info("смерть рошана: "+secondsToText(времяСмертиРошана)+" аегис: "
+                +secondsToText(аегисВСекундах)+" минимальный тайминг возрождения: "+secondsToText(getRoshanMin(времяСмертиРошана))+" максимальный тайминг возрождения: "+secondsToText(getRoshanMax(времяСмертиРошана)));
     }
 
     public static int toSeconds(String text) {
@@ -35,5 +35,8 @@ public class TestImplementation {
     public static int getRoshanMax(int seconds) {
         return seconds+(11*60);
     }
-
+    public static String secondsToText(int seconds) {
+        int minutes = seconds/60;
+        return String.valueOf(minutes)+":"+String.valueOf(seconds-(minutes*60));
+    }
 }
