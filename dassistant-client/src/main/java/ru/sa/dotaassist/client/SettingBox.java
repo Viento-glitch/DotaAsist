@@ -1,8 +1,6 @@
 package ru.sa.dotaassist.client;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 
 /**
@@ -17,10 +15,8 @@ public class SettingBox extends JCheckBox {
      * @param text Отображаемая надпись рядом с чек боксом, подпись, надпись.
      */
     public SettingBox(String key, String text) {
-        setSelected(Boolean.valueOf(PropertyManager.Companion.get(key)));
-        addChangeListener(changeEvent -> {
-            PropertyManager.Companion.set(key, String.valueOf(isSelected()));
-        });
+        setSelected(Boolean.parseBoolean(PropertyManager.Companion.get(key)));
+        addChangeListener(changeEvent -> PropertyManager.Companion.set(key, String.valueOf(isSelected())));
         setText(text);
     }
 }

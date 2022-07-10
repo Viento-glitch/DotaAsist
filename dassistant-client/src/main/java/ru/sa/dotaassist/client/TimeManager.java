@@ -43,10 +43,18 @@ public class TimeManager {
     }
 
     private static String getTextedTime(int minutes, String seconds, int aeg, int minRoshan, int maxRoshan) {
-        if (View.smilesBoolean) {
-            return ":grave:" + minutes + ":" + seconds + selectAegis() + toText(aeg, seconds) + ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
+
+        //todo Я не знаю как обратится к классу настроек потому вынять из него значение use-smiles я не могу
+        //todo реализуй данное действие в этом if
+
+        if (true) {
+            return ":grave:" + minutes + ":" + seconds +
+                    selectAegis() + toText(aeg, seconds) +
+                    ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";
         } else {
-            return "" + minutes + ":" + seconds + " (A)" + toText(aeg, seconds) + "  (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
+            return minutes + ":" + seconds +
+                    " (A)" + toText(aeg, seconds) +
+                    " (R)" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds);
         }
     }
 
@@ -63,7 +71,7 @@ public class TimeManager {
         try {
             result = Integer.parseInt(minutes.toString());
         } catch (Exception e) {
-//            System.out.println(e);
+            System.out.println(e);
         }
         return result;
     }

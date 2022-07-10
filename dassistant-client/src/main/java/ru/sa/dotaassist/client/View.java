@@ -13,7 +13,7 @@ class View extends JFrame {
 
     static final String VERSION = "1.0-SNAPSHOT";
 
-    static JFrame This;
+//    static JFrame mainWindow;
     static boolean autoUpdateBoolean;
     @Subscriber(key = "use-smiles")
     static boolean smilesBoolean;
@@ -32,17 +32,17 @@ class View extends JFrame {
     JCheckBox autoUpdateCheckBox = new JCheckBox("Авто обновление", null, autoUpdateBoolean);
     //JCheckBox useSmilesCheckBox = new JCheckBox("Использовать смайлы", null, isSmilesActive());
 
-    public static boolean isSmilesActive() {
-        return smilesBoolean;
-    }
+//    public static boolean isSmilesActive() {
+//        return smilesBoolean;
+//    }
 
-    public static void setSmilesBoolean(boolean smilesBoolean) {
-        View.smilesBoolean = smilesBoolean;
-    }
+//    public static void setSmilesBoolean(boolean smilesBoolean) {
+//        View.smilesBoolean = smilesBoolean;
+//    }
 
-    public void setUseSmilesCheckBox(boolean value){
-        smilesBoolean = value;
-    }
+//    public void setUseSmilesCheckBox(boolean value){
+//        smilesBoolean = value;
+//    }
 
     public void setCheckBoxStartValue(boolean value) {
         this.autoUpdateCheckBox.setSelected(value);
@@ -51,7 +51,7 @@ class View extends JFrame {
 
     public void init() {
         PropertyManager.Companion.subscribe(this);
-        This = this;
+//        mainWindow = View.this;
         Date startDate = new Date();
         Toolkit tk = Toolkit.getDefaultToolkit();
         int width = 180;
@@ -183,12 +183,12 @@ class View extends JFrame {
         settings.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                new Settings(View.This);
+                new Settings(View.this);
             }
         });
 
         //useSmilesCheckBox.setSelected(isSmilesActive());
-        
+
         //container.add(useSmilesCheckBox);
         container.add(buttonInstruction);
 //        container.add(buttonBugReport);
