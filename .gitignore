@@ -1,4 +1,3 @@
-/target/
-/.idea/
-compiler.xml
+target/
+.idea/
 *.iml
