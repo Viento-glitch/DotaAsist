@@ -23,7 +23,7 @@ class Settings(val parent: JFrame) : JFrame() {
     private val common = JPanel()
     // Панель с настройка робота
     private val robot = JPanel()
-    private val calibrate = JButton("Калибровка захвата таймера")
+    private val calibrate = JButton("Калибровка захвата таймера(немного глючит)")
     // Отвечает за прокрутку
     val bind = JButton("Бинд робота ${PropertyManager.get("robot-hotkey")}")
     var bindListen = false

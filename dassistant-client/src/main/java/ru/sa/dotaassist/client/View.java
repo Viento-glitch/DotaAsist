@@ -23,7 +23,7 @@ class View extends JFrame {
         this.controller = controller;
     }
 
-    JButton settings= new JButton("Настройки(частично работает)");
+    JButton settings= new JButton("Настройки");
     JButton buttonInstruction = new JButton("Инструкция");
     JButton buttonActivate = new JButton("Включить");
     JButton buttonDeactivate = new JButton("Выключить");
