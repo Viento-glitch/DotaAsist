@@ -1,6 +1,9 @@
 package ru.sa.dotaassist.client
 
 import java.awt.*
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import java.awt.event.KeyListener
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import javax.swing.JButton
@@ -20,7 +23,10 @@ class Settings(val parent: JFrame) : JFrame() {
     private val common = JPanel()
     // Панель с настройка робота
     private val robot = JPanel()
+    private val calibrate = JButton("Калибровка захвата таймера")
     // Отвечает за прокрутку
+    val bind = JButton("Бинд робота ${PropertyManager.get("robot-hotkey")}")
+    var bindListen = false
     private val scroll = JScrollPane(panel)
     // Статические обьекты
     companion object {
@@ -75,14 +81,32 @@ class Settings(val parent: JFrame) : JFrame() {
             add(JLabel())
             add(SettingBox("auto-send", "автоматически отправлять сообщение"))
             add(JLabel())
-            add(JButton("Калибровка захвата таймера"))
+            add(calibrate)
             add(JLabel())
-            add(JButton("Бинд робота none"))
+            add(bind)
         }
+        calibrate.addActionListener {
+            RobotCalibrate(this)
+        }
+        bind.addActionListener {
+            bind.text = "Бинд робота ..."
+            bindListen = true
+        }
+        bind.addKeyListener(KeyBindListener(this))
         // Всегда поверх других окон
         isAlwaysOnTop = true
     }
 
+
+    class KeyBindListener(val ST: Settings) : KeyAdapter() {
+        override fun keyTyped(p0: KeyEvent?) {
+            if (p0 != null && ST.bindListen) {
+                ST.bind.text = "Бинд робота ${p0.keyChar}"
+                PropertyManager.set("robot-hotkey", p0.keyChar.toString())
+                ST.bindListen = false
+            }
+        }
+    }
 
     class WindowSettingsListener(private val ST: Settings) : WindowAdapter() {
         // Активируется на первоначальное появление окна

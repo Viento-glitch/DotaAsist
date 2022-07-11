@@ -40,7 +40,7 @@ class PropertyManager {
                 put("robot-yPos", "0")
                 put("robot-width", "0")
                 put("robot-height", "0")
-                put("robot-hotkey", "KeyEvent.VK_T.toChar()")
+                put("robot-hotkey", "r")
             }
             return properties
         }
