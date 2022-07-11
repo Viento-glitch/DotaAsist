@@ -21,12 +21,19 @@ public class RobotCalibrate extends JFrame {
         JTextField path = new JTextField(20);
         add(choose);
         choose.addActionListener(actionEvent -> {
-
+           JFileChooser fileChooser = new JFileChooser();
+           if(fileChooser.showOpenDialog(this)!= JFileChooser.ABORT) {
+               path.setText(fileChooser.getSelectedFile().toString());
+           }
+        });
+        load.addActionListener(actionEvent -> {
+            picker.load(path.getText());
         });
         add(path);
         add(load);
     }};
-    private JScrollPane scroll = new JScrollPane(new Picker());
+    Picker picker = new Picker();
+    private JScrollPane scroll = new JScrollPane(picker);
     private JPanel panel = new JPanel() {{
         add(scroll);
         add(control);
@@ -53,7 +60,17 @@ public class RobotCalibrate extends JFrame {
 }
 
 class Picker extends JPanel {
-
+    JLabel image = new JLabel("Here should be your screenshot");
+    {
+        add(image);
+    }
+    public void load(String path) {
+        try {
+            image.setIcon(new ImageIcon(path));
+        } catch (Exception e) {
+            image.setText("could not load your screenshot");
+        }
+    }
 }
 
 /**
