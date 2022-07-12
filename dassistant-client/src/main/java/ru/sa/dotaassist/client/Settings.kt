@@ -23,10 +23,11 @@ class Settings(val parent: JFrame) : JFrame() {
     private val common = JPanel()
     // Панель с настройка робота
     private val robot = JPanel()
-    private val calibrate = JButton("Калибровка захвата таймера(немного глючит)")
+    private val calibrate = JButton("Калибровка захвата таймера")
     // Отвечает за прокрутку
-    val bind = JButton("Бинд робота ${PropertyManager.get("robot-hotkey")}")
-    var bindListen = false
+    //val bind = JButton("Бинд робота ${PropertyManager.get("robot-hotkey")}")
+    private val bind = BindButton("Бинд робота", "robot-hotkey")
+    //var bindListen = false
     private val scroll = JScrollPane(panel)
     // Статические обьекты
     companion object {
@@ -69,36 +70,37 @@ class Settings(val parent: JFrame) : JFrame() {
             background = Color.LIGHT_GRAY
         }
         common.apply {
-            layout = GridLayout(4, 1, 5, 5)
+            layout = GridLayout(5, 1, 5, 5)
             add(JLabel("Общие"))
             add(SettingBox("auto-update", "обновляться автоматически"))
             add(SettingBox("show-warns", "показывать окна с предупреждениями"))
             add(SettingBox("send-statistic", "отправлять статистику использования"))
+            add(SettingBox("use-smiles", "Использовать смайлы"))
         }
         robot.apply {
-            layout = GridLayout(4, 2, 5, 5)
+            layout = GridLayout(4, 1, 5, 5)
             add(JLabel("Робот"))
-            add(JLabel())
+            //add(JLabel())
             add(SettingBox("auto-send", "автоматически отправлять сообщение"))
-            add(JLabel())
+            //add(JLabel())
             add(calibrate)
-            add(JLabel())
+            //add(JLabel())
             add(bind)
         }
         calibrate.addActionListener {
             RobotCalibrate(this)
         }
-        bind.addActionListener {
+        /*bind.addActionListener {
             bind.text = "Бинд робота ..."
             bindListen = true
         }
-        bind.addKeyListener(KeyBindListener(this))
+        bind.addKeyListener(KeyBindListener(this))*/
         // Всегда поверх других окон
         isAlwaysOnTop = true
     }
 
 
-    class KeyBindListener(val ST: Settings) : KeyAdapter() {
+   /* class KeyBindListener(val ST: Settings) : KeyAdapter() {
         override fun keyTyped(p0: KeyEvent?) {
             if (p0 != null && ST.bindListen) {
                 ST.bind.text = "Бинд робота ${p0.keyChar}"
@@ -106,7 +108,7 @@ class Settings(val parent: JFrame) : JFrame() {
                 ST.bindListen = false
             }
         }
-    }
+    }*/
 
     class WindowSettingsListener(private val ST: Settings) : WindowAdapter() {
         // Активируется на первоначальное появление окна

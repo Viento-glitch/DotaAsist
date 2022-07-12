@@ -41,6 +41,7 @@ class PropertyManager {
                 put("robot-width", "0")
                 put("robot-height", "0")
                 put("robot-hotkey", "r")
+                put("use-smiles", "false")
             }
             return properties
         }

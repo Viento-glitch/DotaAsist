@@ -15,6 +15,7 @@ class View extends JFrame {
 
     static JFrame This;
     static boolean autoUpdateBoolean;
+    @Subscriber(key = "use-smiles")
     static boolean smilesBoolean;
     Controller controller;
 
@@ -29,7 +30,7 @@ class View extends JFrame {
     JButton buttonDeactivate = new JButton("Выключить");
     JButton buttonBugReport = new JButton("Баг репорт");
     JCheckBox autoUpdateCheckBox = new JCheckBox("Авто обновление", null, autoUpdateBoolean);
-    JCheckBox useSmilesCheckBox = new JCheckBox("Использовать смайлы", null, isSmilesActive());
+    //JCheckBox useSmilesCheckBox = new JCheckBox("Использовать смайлы", null, isSmilesActive());
 
     public static boolean isSmilesActive() {
         return smilesBoolean;
@@ -49,11 +50,13 @@ class View extends JFrame {
 
 
     public void init() {
+        PropertyManager.Companion.subscribe(this);
         This = this;
         Date startDate = new Date();
         Toolkit tk = Toolkit.getDefaultToolkit();
-        int width = 340;
-        int height = 125;
+        int width = 180;
+        int height = 255;
+        setResizable(false);
         int xPos = (tk.getScreenSize().width-width)/2;
         int yPos = (tk.getScreenSize().height-height)/2;
 
@@ -167,7 +170,7 @@ class View extends JFrame {
 
 
         Container container = this.getContentPane();
-        container.setLayout(new GridLayout(5, 1, 1, 1));
+        container.setLayout(new GridLayout(4, 1, 15, 10));
 //        container.setLayout(new GridLayout(3, 1, 1, 2));
         buttonActivate.addActionListener(new ActivateButtonEventListener());
 
@@ -175,7 +178,7 @@ class View extends JFrame {
         buttonInstruction.addActionListener(new ButtonEventListenerInstruction());
         buttonBugReport.addActionListener(new ButtonEventListenerBugReport());
         autoUpdateCheckBox.addActionListener(new CheckboxAction());
-        useSmilesCheckBox.addActionListener(new SmileCheckboxAction());
+        //useSmilesCheckBox.addActionListener(new SmileCheckboxAction());
 
         settings.addActionListener(new AbstractAction() {
             @Override
@@ -184,9 +187,9 @@ class View extends JFrame {
             }
         });
 
-        useSmilesCheckBox.setSelected(isSmilesActive());
+        //useSmilesCheckBox.setSelected(isSmilesActive());
         
-        container.add(useSmilesCheckBox);
+        //container.add(useSmilesCheckBox);
         container.add(buttonInstruction);
 //        container.add(buttonBugReport);
         container.add(settings);
@@ -200,7 +203,7 @@ class View extends JFrame {
     public void warningMessage(String message) {
         JOptionPane.showMessageDialog(null, message, "", JOptionPane.WARNING_MESSAGE, null);
     }
-
+/*
     static class SmileCheckboxAction extends AbstractAction {
         public SmileCheckboxAction() {
             super();
@@ -233,7 +236,7 @@ class View extends JFrame {
             }
         }
     }
-
+*/
     static class CheckboxAction extends AbstractAction {
         public CheckboxAction() {
             super();

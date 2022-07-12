@@ -38,10 +38,10 @@ public class RobotCalibrate extends JFrame {
         add(load);
     }};
     final private Picker picker = new Picker(this);
-    //final private JScrollPane scroll = new JScrollPane(picker);
+    final private JScrollPane scroll = new JScrollPane(picker);
     final private JPanel panel = new JPanel() {{
-        //add(scroll);
-        add(picker);
+        add(scroll);
+        //add(picker);
         add(control);
     }};
     public void setMessage(String text) {
@@ -55,13 +55,13 @@ public class RobotCalibrate extends JFrame {
         setLocation((screenSize.width-600)/2, (screenSize.height-400)/2);
         setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         addWindowListener(new WindowRobotListener(parent));
-        //scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        //scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-        //Dimension scrollSize = new Dimension(550, 300);
-        //scroll.setMinimumSize(scrollSize);
-        //scroll.setPreferredSize(scrollSize);
-        //scroll.setMinimumSize(scrollSize);
-        //scroll.setSize(scrollSize);
+        scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        Dimension scrollSize = new Dimension(550, 300);
+        scroll.setMinimumSize(scrollSize);
+        scroll.setPreferredSize(scrollSize);
+        scroll.setMinimumSize(scrollSize);
+        scroll.setSize(scrollSize);
 
         add(panel);
         setVisible(true);
@@ -89,7 +89,7 @@ class Picker extends JPanel {
 // paint the Icon to the BufferedImage.
                     imageIcon.paintIcon(null, g, 0,0);
                     g.dispose();
-                    cutImage = cutImage.getSubimage(point1.x, point1.y, point2.x, point2.y);
+                    cutImage = cutImage.getSubimage(point1.x, point1.y, point2.x-point1.x, point2.y-point1.y);
                     image.setIcon(new ImageIcon(cutImage));
                     robotCalibrate.active=false;
                     PropertyManager.Companion.set("robot-xPos", String.valueOf(point1.x));
@@ -122,10 +122,10 @@ class Picker extends JPanel {
         try {
             imageIcon = new ImageIcon(path);
             image.setIcon(imageIcon);
-            robotCalibrate.setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
-            Toolkit toolkit = Toolkit.getDefaultToolkit();
-            Dimension screenSize =  toolkit.getScreenSize();
-            robotCalibrate.setLocation((screenSize.width-imageIcon.getIconWidth())/2,(screenSize.height-imageIcon.getIconHeight())/2);
+            //robotCalibrate.setSize(imageIcon.getIconWidth(), imageIcon.getIconHeight());
+            //Toolkit toolkit = Toolkit.getDefaultToolkit();
+            //Dimension screenSize =  toolkit.getScreenSize();
+            //robotCalibrate.setLocation((screenSize.width-imageIcon.getIconWidth())/2,(screenSize.height-imageIcon.getIconHeight())/2);
             image.setText("");
         } catch (Exception e) {
             image.setText("could not load your screenshot");
