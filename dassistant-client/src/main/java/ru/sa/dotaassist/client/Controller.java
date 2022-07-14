@@ -50,7 +50,7 @@ public class Controller {
         }
         try {
             view.setCheckBoxStartValue(databaseManager.isAutoUpdateEnabled());
-            view.setUseSmilesCheckBox(databaseManager.isSmilesEnabled());
+//            view.setUseSmilesCheckBox(databaseManager.isSmilesEnabled());
         } catch (DbException e) {
             throw new RuntimeException(e);
         }
