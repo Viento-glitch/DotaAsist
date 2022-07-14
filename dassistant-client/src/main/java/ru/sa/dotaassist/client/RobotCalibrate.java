@@ -94,8 +94,8 @@ class Picker extends JPanel {
                     robotCalibrate.active=false;
                     PropertyManager.Companion.set("robot-xPos", String.valueOf(point1.x));
                     PropertyManager.Companion.set("robot-yPos", String.valueOf(point1.y));
-                    PropertyManager.Companion.set("robot-width", String.valueOf(point1.x));
-                    PropertyManager.Companion.set("robot-height", String.valueOf(point1.y));
+                    PropertyManager.Companion.set("robot-width", String.valueOf(point2.x));
+                    PropertyManager.Companion.set("robot-height", String.valueOf(point2.y));
                     point1=null;
                     point2=null;
                 }

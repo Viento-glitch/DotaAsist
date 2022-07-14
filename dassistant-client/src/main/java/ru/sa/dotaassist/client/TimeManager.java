@@ -7,6 +7,11 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class TimeManager {
+    // Ты хочушь использовать, это в статиченом методе. там вызывать по другому
+    //{PropertyManager.Companion.subscribe(this);} // Добавляется ссылка на экземпляр класса,
+    // более добавлять его не надо
+    //@Subscriber(key = "use-smiles") // Пометка для анализатора полей, что это поле надо заполнять и обновлять.
+    //public boolean useSmiles;
     public static String generateRoshanTiming(String startNumber, boolean isTest) {
         String seconds = makeSeconds(startNumber);
         int minutes = makeMinutes(startNumber);
@@ -44,10 +49,7 @@ public class TimeManager {
 
     private static String getTextedTime(int minutes, String seconds, int aeg, int minRoshan, int maxRoshan) {
 
-        //todo Я не знаю как обратится к классу настроек потому вынять из него значение use-smiles я не могу
-        //todo реализуй данное действие в этом if
-
-        if (true) {
+        if (Boolean.valueOf(PropertyManager.Companion.get("use-smiles"))) {
             return ":grave:" + minutes + ":" + seconds +
                     selectAegis() + toText(aeg, seconds) +
                     ":bts_rosh:" + toText(minRoshan, seconds) + "-" + toText(maxRoshan, seconds) + " ";

@@ -350,6 +350,7 @@ class View extends JFrame {
             } catch (NativeHookException nativeHookException) {
                 nativeHookException.printStackTrace();
             }
+            // В данный момент, это изменение почти не будет влиять на функционал
             GlobalScreen.addNativeKeyListener(new Assistant());
         }
     }
