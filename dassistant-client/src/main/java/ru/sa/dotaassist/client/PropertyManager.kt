@@ -32,7 +32,7 @@ class PropertyManager {
             // Все строки внутри apply применяются к properties
             // Задавать новые настройки следует здесь в формате ключ - значение
             properties.apply {
-                put("auto-send", "false")
+                put("auto-send", "true")
                 put("auto-update", "true")
                 put("show-warns", "true")
                 put("send-statistic", "true")
